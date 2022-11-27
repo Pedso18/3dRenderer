@@ -10,7 +10,7 @@ public class Index {
     static JFrame frame;
     static private JPanel panel;
     static int[] defaultFrameSize = { 800, 500 };
-    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 1000 };
+    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 1200 };
     static int[] cameraMovement = { 0, 0, 0 };
 
     public static void main(String[] args) {
@@ -78,12 +78,12 @@ public class Index {
                     cameraMovement[1] += 2;
                     panel.repaint();
                 } else if (e.getKeyCode() == 87) { // w
-                    cameraMovement[2] -= 2;
-                    cameraPos[2] -= 2;
+                    cameraMovement[2] -= 5;
+                    cameraPos[2] -= 5;
                     panel.repaint();
                 } else if (e.getKeyCode() == 83) { // s
-                    cameraMovement[2] += 2;
-                    cameraPos[2] += 2;
+                    cameraMovement[2] += 5;
+                    cameraPos[2] += 5;
                     panel.repaint();
                 } else if (e.getKeyCode() == 88) {
                     Vertex[] vertices = shapes[0].getVertices();
@@ -94,13 +94,25 @@ public class Index {
                 } else if (e.getKeyCode() == 89) {
                     Vertex[] vertices = shapes[0].getVertices();
                     for (int i = 0; i < vertices.length; i++) {
-                        rotateYAxis(vertices[i], -0.05, 400, 250, -50);
+                        rotateYAxis(vertices[i], -0.3, 400, 250, -50);
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 90) {
                     Vertex[] vertices = shapes[0].getVertices();
                     for (int i = 0; i < vertices.length; i++) {
                         rotateZAxis(vertices[i], -0.3, 400, 250, -50);
+                    }
+                    panel.repaint();
+                } else if (e.getKeyCode() == 37) {
+                    Vertex[] vertices = shapes[0].getVertices();
+                    for (int i = 0; i < vertices.length; i++) {
+                        rotateYAxis(vertices[i], -0.05, cameraPos[0], cameraPos[1], cameraPos[2]);
+                    }
+                    panel.repaint();
+                } else if (e.getKeyCode() == 39) {
+                    Vertex[] vertices = shapes[0].getVertices();
+                    for (int i = 0; i < vertices.length; i++) {
+                        rotateYAxis(vertices[i], 0.05, cameraPos[0], cameraPos[1], cameraPos[2]);
                     }
                     panel.repaint();
                 }
@@ -128,56 +140,11 @@ public class Index {
 
                     g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56, rand.nextInt(200) + 56));
 
-                    // connectVertices(0, 1, vertices, g);
-                    // connectVertices(1, 2, vertices, g);
-                    // connectVertices(2, 3, vertices, g);
-                    // connectVertices(3, 0, vertices, g);
-
-                    // connectVertices(4, 5, vertices, g);
-                    // connectVertices(5, 6, vertices, g);
-                    // connectVertices(6, 7, vertices, g);
-                    // connectVertices(7, 4, vertices, g);
-
-                    // connectVertices(0, 4, vertices, g);
-                    // connectVertices(1, 5, vertices, g);
-                    // connectVertices(2, 6, vertices, g);
-                    // connectVertices(3, 7, vertices, g);
-
                     for (int i = 0; i < 4; i++) {
                         connectVertices(i, (i + 1) % 4, vertices, g);
                         connectVertices(i + 4, (i + 1) % 4 + 4, vertices, g);
                         connectVertices(i, i + 4, vertices, g);
                     }
-
-                    // for (int i = 0; i < vertices.length; i++) {
-                    // System.out.println("this vertex has index: " + i);
-                    // System.out.println("x: " + vertices[i].getX());
-                    // System.out.println("y: " + vertices[i].getY());
-                    // System.out.println("z: " + vertices[i].getZ());
-                    // System.out.println("-------------------------");
-                    // for (int a = 0; a < vertices.length; a++) {
-                    // for (int b = 0; b < vertices.length; b++) {
-                    // if (a != i && a != b && i != b && (vertices[a].getZ() < cameraPos[2]
-                    // || vertices[b].getZ() < cameraPos[2] || vertices[i].getZ() < cameraPos[2])) {
-                    // Vertex v1 = getPerspectiveOffset(vertices[i]);
-                    // Vertex v2 = getPerspectiveOffset(vertices[a]);
-                    // Vertex v3 = getPerspectiveOffset(vertices[b]);
-
-                    // Polygon p = new Polygon(
-                    // new int[] { (int) v1.getX(), (int) v2.getX(), (int) v3.getX() },
-                    // new int[] { (int) v1.getY(), (int) v2.getY(), (int) v3.getY() }, 3);
-
-                    // g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56,
-                    // rand.nextInt(200) + 56));
-
-                    // g.drawPolygon(p);
-
-                    // // g.fillPolygon(p);
-
-                    // }
-                    // }
-                    // }
-                    // }
 
                 }
 
@@ -223,6 +190,9 @@ public class Index {
     static void connectVertices(int index1, int index2, Vertex[] vertices, Graphics g) {
         Vertex v1 = getPerspectiveOffset(vertices[index1]);
         Vertex v2 = getPerspectiveOffset(vertices[index2]);
+        if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2]) {
+            return;
+        }
         g.drawLine((int) v1.getX(), (int) v1.getY(), (int) v2.getX(), (int) v2.getY());
     }
 
