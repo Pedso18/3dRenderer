@@ -10,12 +10,12 @@ public class Index {
     static JFrame frame;
     static private JPanel panel;
     static int[] defaultFrameSize = { 800, 500 };
-    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 1200 };
+    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 2000 };
     static int[] cameraMovement = { 0, 0, 0 };
 
     public static void main(String[] args) {
 
-        Shape[] shapes = new Shape[1];
+        Shape[] shapes = new Shape[2];
 
         Shape cube = new Shape();
         Shape parallelepiped = new Shape();
@@ -30,18 +30,18 @@ public class Index {
         cube.addVertex(new Vertex(450, 200, -100));
         cube.addVertex(new Vertex(350, 200, -100));
 
-        // parallelepiped.addVertex(new Vertex(650, 200, -100));
-        // parallelepiped.addVertex(new Vertex(450, 200, -100));
-        // parallelepiped.addVertex(new Vertex(650, 300, -100));
-        // parallelepiped.addVertex(new Vertex(450, 300, -100));
+        parallelepiped.addVertex(new Vertex(550, 300, 0));
+        parallelepiped.addVertex(new Vertex(650, 300, 0));
+        parallelepiped.addVertex(new Vertex(650, 200, 0));
+        parallelepiped.addVertex(new Vertex(550, 200, 0));
 
-        // parallelepiped.addVertex(new Vertex(650, 200, -200));
-        // parallelepiped.addVertex(new Vertex(450, 200, -200));
-        // parallelepiped.addVertex(new Vertex(650, 300, -200));
-        // parallelepiped.addVertex(new Vertex(450, 300, -200));
+        parallelepiped.addVertex(new Vertex(550, 300, -100));
+        parallelepiped.addVertex(new Vertex(650, 300, -100));
+        parallelepiped.addVertex(new Vertex(650, 200, -100));
+        parallelepiped.addVertex(new Vertex(550, 200, -100));
 
         shapes[0] = cube;
-        // shapes[1] = parallelepiped;
+        shapes[1] = parallelepiped;
 
         initGUI(shapes);
 
@@ -104,15 +104,19 @@ public class Index {
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 37) {
-                    Vertex[] vertices = shapes[0].getVertices();
-                    for (int i = 0; i < vertices.length; i++) {
-                        rotateYAxis(vertices[i], -0.05, cameraPos[0], cameraPos[1], cameraPos[2]);
+                    for (int a = 0; a < shapes.length; a++) {
+                        Vertex[] vertices = shapes[a].getVertices();
+                        for (int i = 0; i < vertices.length; i++) {
+                            rotateYAxis(vertices[i], -0.05, cameraPos[0], cameraPos[1], cameraPos[2]);
+                        }
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 39) {
-                    Vertex[] vertices = shapes[0].getVertices();
-                    for (int i = 0; i < vertices.length; i++) {
-                        rotateYAxis(vertices[i], 0.05, cameraPos[0], cameraPos[1], cameraPos[2]);
+                    for (int a = 0; a < shapes.length; a++) {
+                        Vertex[] vertices = shapes[a].getVertices();
+                        for (int i = 0; i < vertices.length; i++) {
+                            rotateYAxis(vertices[i], 0.05, cameraPos[0], cameraPos[1], cameraPos[2]);
+                        }
                     }
                     panel.repaint();
                 }
@@ -138,12 +142,18 @@ public class Index {
 
                     Vertex[] vertices = shape.getVertices();
 
-                    g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56, rand.nextInt(200) + 56));
-
                     for (int i = 0; i < 4; i++) {
-                        connectVertices(i, (i + 1) % 4, vertices, g);
-                        connectVertices(i + 4, (i + 1) % 4 + 4, vertices, g);
-                        connectVertices(i, i + 4, vertices, g);
+
+                        g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56, rand.nextInt(200) + 56));
+                        drawFace(i, i + 4, (i + 1) % 4 + 4, (i + 1) % 4, vertices, g, false);
+
+                    }
+
+                    for (int i = 0; i < 2; i++) {
+
+                        g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56, rand.nextInt(200) + 56));
+                        drawFace(0 + 4 * i, 1 + 4 * i, 2 + 4 * i, 3 + 4 * i, vertices, g, false);
+
                     }
 
                 }
@@ -194,6 +204,26 @@ public class Index {
             return;
         }
         g.drawLine((int) v1.getX(), (int) v1.getY(), (int) v2.getX(), (int) v2.getY());
+    }
+
+    static void drawFace(int index1, int index2, int index3, int index4, Vertex[] vertices, Graphics g,
+            boolean shouldFill) {
+        Vertex v1 = getPerspectiveOffset(vertices[index1]);
+        Vertex v2 = getPerspectiveOffset(vertices[index2]);
+        Vertex v3 = getPerspectiveOffset(vertices[index3]);
+        Vertex v4 = getPerspectiveOffset(vertices[index4]);
+
+        if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2] && v3.getZ() > cameraPos[2]
+                && v4.getZ() > cameraPos[2]) {
+            return;
+        }
+        g.drawPolygon(new Polygon(new int[] { (int) v1.getX(), (int) v2.getX(), (int) v3.getX(), (int) v4.getX() },
+                new int[] { (int) v1.getY(), (int) v2.getY(), (int) v3.getY(), (int) v4.getY() }, 4));
+
+        if (shouldFill) {
+            g.fillPolygon(new Polygon(new int[] { (int) v1.getX(), (int) v2.getX(), (int) v3.getX(), (int) v4.getX() },
+                    new int[] { (int) v1.getY(), (int) v2.getY(), (int) v3.getY(), (int) v4.getY() }, 4));
+        }
     }
 
     static void rotateYAxis(Vertex vertex, double angle, int... rotateAround) {
