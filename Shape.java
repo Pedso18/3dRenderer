@@ -1,3 +1,5 @@
+import java.awt.Color;
+
 public class Shape {
 
     Vertex[] vertices;
@@ -10,6 +12,8 @@ public class Shape {
     Integer indexToBiggestX;
     Integer indexToBiggestY;
     Integer indexToBiggestZ;
+
+    Color color;
 
     Shape(Vertex[] vertices) {
         this.vertices = vertices;
@@ -27,6 +31,14 @@ public class Shape {
 
     public double[] getRotation() {
         return rotation;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     public Vertex getSmallestYPoint() {

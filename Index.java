@@ -8,7 +8,7 @@ public class Index {
     static JFrame frame;
     static private JPanel panel;
     static int[] defaultFrameSize = { 800, 500 };
-    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 2000 };
+    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 1000 };
     static int[] cameraMovement = { 0, 0, 0 };
     static int renderDistance = 200;
 
@@ -16,12 +16,17 @@ public class Index {
     static Vertex yAxis = new Vertex(0, 1, 0);
     static Vertex zAxis = new Vertex(0, 0, 1);
 
+    static Vertex light = new Vertex(0, 0, 0);
+
+    static Double[][] lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
+
     public static void main(String[] args) {
 
-        Shape[] shapes = new Shape[1];
+        Shape[] shapes = new Shape[3];
 
         Shape cube = new Shape();
-        Shape parallelepiped = new Shape();
+        Shape cube2 = new Shape();
+        Shape cube3 = new Shape();
 
         cube.addVertex(new Vertex(350, 300, 0));
         cube.addVertex(new Vertex(450, 300, 0));
@@ -33,26 +38,40 @@ public class Index {
         cube.addVertex(new Vertex(450, 200, -100));
         cube.addVertex(new Vertex(350, 200, -100));
 
-        // parallelepiped.addVertex(new Vertex(550, 300, 0));
-        // parallelepiped.addVertex(new Vertex(650, 300, 0));
-        // parallelepiped.addVertex(new Vertex(650, 200, 0));
-        // parallelepiped.addVertex(new Vertex(550, 200, 0));
-
-        // parallelepiped.addVertex(new Vertex(550, 300, -100));
-        // parallelepiped.addVertex(new Vertex(650, 300, -100));
-        // parallelepiped.addVertex(new Vertex(650, 200, -100));
-        // parallelepiped.addVertex(new Vertex(550, 200, -100));
-
         shapes[0] = cube;
-        // shapes[1] = parallelepiped;
+        shapes[0].setColor(new Color(20, 20, 255));
+
+        cube2.addVertex(new Vertex(350, 300, -200));
+        cube2.addVertex(new Vertex(450, 300, -200));
+        cube2.addVertex(new Vertex(450, 200, -200));
+        cube2.addVertex(new Vertex(350, 200, -200));
+
+        cube2.addVertex(new Vertex(350, 300, -300));
+        cube2.addVertex(new Vertex(450, 300, -300));
+        cube2.addVertex(new Vertex(450, 200, -300));
+        cube2.addVertex(new Vertex(350, 200, -300));
+
+        shapes[1] = cube2;
+        shapes[1].setColor(new Color(255, 20, 20));
+
+        cube3.addVertex(new Vertex(350, 300, -400));
+        cube3.addVertex(new Vertex(450, 300, -400));
+        cube3.addVertex(new Vertex(450, 200, -400));
+        cube3.addVertex(new Vertex(350, 200, -400));
+
+        cube3.addVertex(new Vertex(350, 300, -500));
+        cube3.addVertex(new Vertex(450, 300, -500));
+        cube3.addVertex(new Vertex(450, 200, -500));
+        cube3.addVertex(new Vertex(350, 200, -500));
+
+        shapes[2] = cube3;
+        shapes[2].setColor(new Color(20, 255, 20));
 
         initGUI(shapes);
 
     }
 
     static public void initGUI(Shape[] shapes) {
-
-        Random rand = new Random();
 
         frame = new JFrame(); // default layout manager is BorderLayout
         frame.setSize(defaultFrameSize[0], defaultFrameSize[1]);
@@ -65,20 +84,20 @@ public class Index {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == 65) { // a
-                    cameraPos[0] -= 2;
-                    cameraMovement[0] -= 2;
+                    cameraPos[0] -= 6;
+                    cameraMovement[0] -= 6;
                     panel.repaint();
                 } else if (e.getKeyCode() == 68) { // d
-                    cameraPos[0] += 2;
-                    cameraMovement[0] += 2;
+                    cameraPos[0] += 6;
+                    cameraMovement[0] += 6;
                     panel.repaint();
                 } else if (e.getKeyCode() == 69) { // e
-                    cameraPos[1] -= 2;
-                    cameraMovement[1] -= 2;
+                    cameraPos[1] -= 6;
+                    cameraMovement[1] -= 6;
                     panel.repaint();
                 } else if (e.getKeyCode() == 81) { // q
-                    cameraPos[1] += 2;
-                    cameraMovement[1] += 2;
+                    cameraPos[1] += 6;
+                    cameraMovement[1] += 6;
                     panel.repaint();
                 } else if (e.getKeyCode() == 87) { // w
                     cameraMovement[2] -= 5;
@@ -115,7 +134,7 @@ public class Index {
                 } else if (e.getKeyCode() == 37) {
                     for (int a = 0; a < shapes.length; a++) {
                         Vertex[] vertices = shapes[a].getVertices();
-                        double angle = -0.05;
+                        double angle = -45;
                         shapes[0].addYAxisRotation(angle);
                         for (int i = 0; i < vertices.length; i++) {
                             rotateYAxis(vertices[i], angle, cameraPos[0], cameraPos[1], cameraPos[2]);
@@ -125,7 +144,7 @@ public class Index {
                 } else if (e.getKeyCode() == 39) {
                     for (int a = 0; a < shapes.length; a++) {
                         Vertex[] vertices = shapes[a].getVertices();
-                        double angle = 0.05;
+                        double angle = 45;
                         shapes[0].addYAxisRotation(angle);
                         for (int i = 0; i < vertices.length; i++) {
                             rotateYAxis(vertices[i], angle, cameraPos[0], cameraPos[1], cameraPos[2]);
@@ -146,6 +165,8 @@ public class Index {
 
             protected void paintComponent(Graphics g) {
 
+                lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
+
                 g.setColor(new Color(0, 0, 0));
                 g.fillRect(0, 0, defaultFrameSize[0], defaultFrameSize[1]);
 
@@ -153,35 +174,13 @@ public class Index {
 
                     Shape shape = shapes[s];
 
-                    rayRendering(shape, 50000, g);
-
-                    // Vertex[] vertices = shape.getVertices();
-
-                    // // System.out.println("in shape: " + s);
-
-                    // for (int i = 0; i < 4; i++) {
-
-                    // g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56,
-                    // rand.nextInt(200) + 56));
-
-                    // drawFace(i, i + 4, (i + 1) % 4 + 4, (i + 1) % 4, vertices, g, false);
-                    // // drawFace(0, 4, 5, 1, vertices, g, false);
-
-                    // }
-
-                    // for (int i = 0; i < 2; i++) {
-
-                    // g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56,
-                    // rand.nextInt(200) + 56));
-                    // drawFace(0 + 4 * i, 1 + 4 * i, 2 + 4 * i, 3 + 4 * i, vertices, g, false);
-
-                    // }
+                    rayRendering(shape, 1000 + (int) Math.abs(cameraPos[2]), g);
 
                 }
 
             }
 
-        }; // default layout manager is FlowLayout
+        };
 
         frame.add(panel);
         frame.setVisible(true);
@@ -265,8 +264,20 @@ public class Index {
             v3 = getPerspectiveOffset(vertices[(i + 1) % 4 + 4]);
             v4 = getPerspectiveOffset(vertices[(i + 1) % 4]);
 
-            rayTriangleIntersection(v1, v2, v3, amountOfRays, g);
-            rayTriangleIntersection(v3, v4, v1, amountOfRays, g);
+            if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
+                    && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
+                    && v1.getY() > -200
+                    && v2.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
+                    && v2.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
+                rayTriangleIntersection(v1, v2, v3, amountOfRays, g, shape.color);
+            }
+            if (v1.getX() > -200 && v4.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
+                    && v4.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
+                    && v1.getY() > -200
+                    && v4.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
+                    && v4.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
+                rayTriangleIntersection(v3, v4, v1, amountOfRays, g, shape.color);
+            }
 
         }
 
@@ -278,21 +289,40 @@ public class Index {
             v3 = getPerspectiveOffset(vertices[2 + 4 * i]);
             v4 = getPerspectiveOffset(vertices[3 + 4 * i]);
 
-            rayTriangleIntersection(v1, v2, v3, amountOfRays, g);
-            rayTriangleIntersection(v3, v4, v1, amountOfRays, g);
+            if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
+                    && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
+                    && v1.getY() > -200
+                    && v2.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
+                    && v2.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
+                rayTriangleIntersection(v1, v2, v3, amountOfRays, g, shape.color);
+            }
+            if (v1.getX() > -200 && v4.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
+                    && v4.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
+                    && v1.getY() > -200
+                    && v4.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
+                    && v4.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
+                rayTriangleIntersection(v3, v4, v1, amountOfRays, g, shape.color);
+            }
 
         }
     }
 
-    static void rayTriangleIntersection(Vertex a, Vertex b, Vertex c, int amountOfRays, Graphics g) {
+    static void rayTriangleIntersection(Vertex a, Vertex b, Vertex c, int amountOfRays, Graphics g, Color shapeColor) {
 
         Random rand = new Random();
+
+        int[] miniMaxX = { (int) a.getX(), (int) a.getX() };
+        int[] miniMaxY = { (int) a.getY(), (int) a.getY() };
+
+        setXYMinMax(miniMaxX, miniMaxY, b, c);
 
         for (int i = 0; i < amountOfRays; i++) {
 
             Ray camRay;
-            camRay = new Ray(new Vertex(rand.nextInt(defaultFrameSize[0] + 1), rand.nextInt(defaultFrameSize[0] + 1),
-                    cameraPos[2]), zAxis, -1);
+            camRay = new Ray(new Vertex(rand.nextInt(miniMaxX[1] - miniMaxX[0] + 1) + miniMaxX[0],
+                    rand.nextInt(miniMaxY[1] - miniMaxY[0] + 1) + miniMaxY[0], // makes sure that rays will only
+                    cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To render reflections
+                                               // in the future I can get a line from the camera to the rendered dot
 
             Vertex triEdge1 = vectorSubtraction(b, a);
             Vertex triEdge2 = vectorSubtraction(c, a);
@@ -304,7 +334,6 @@ public class Index {
             double nDotD = dotProduct(triPlaneNormal, camRay.getDirection());
 
             if (Math.abs(nDotD) <= 0.0001) {
-                // System.out.println("returned");
                 return;
             }
 
@@ -313,6 +342,13 @@ public class Index {
 
             Vertex planePoint = vectorAddition(camRay.startingPoint,
                     vectorMultiplication(camRay.getDirection(), camRay.t));
+
+            if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] && planePoint.getY() >= 0
+                    && planePoint.getY() < defaultFrameSize[1]
+                    && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] != null
+                    && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] > planePoint.getZ()) {
+                return;
+            }
 
             Vertex aToBEdge = vectorSubtraction(b, a);
             Vertex bToCEdge = vectorSubtraction(c, b);
@@ -330,17 +366,67 @@ public class Index {
             boolean bTestVecMatchesNormal = dotProduct(bTestVec, triFlatNormal) > 0;
             boolean cTestVecMatchesNormal = dotProduct(cTestVec, triFlatNormal) > 0;
 
-            // System.out.println(aTestVecMatchesNormal);
-            // System.out.println(bTestVecMatchesNormal);
-            // System.out.println(cTestVecMatchesNormal);
-
             if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
-                // System.out.println("intersected");
-                g.setColor(new Color(rand.nextInt(200) + 56, rand.nextInt(200) + 56,
-                        rand.nextInt(200) + 56));
-                g.drawRect((int) planePoint.getX(), (int) planePoint.getY(), 1, 1);
+
+                double distanceToLight = getDistance(planePoint, light);
+
+                int red = shapeColor.getRed() * 400 / ((int) distanceToLight + 1);
+                int green = shapeColor.getGreen() * 400 / ((int) distanceToLight + 1);
+                int blue = shapeColor.getBlue() * 400 / ((int) distanceToLight + 1);
+
+                if (red > 255) {
+                    red = 255;
+                }
+                if (green > 255) {
+                    green = 255;
+                }
+                if (blue > 255) {
+                    blue = 255;
+                }
+
+                // System.out.println(red);
+                // System.out.println(green);
+                // System.out.println(blue);
+
+                g.setColor(new Color(red, green, blue));
+
+                g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), 5, 5);
             }
 
+        }
+    }
+
+    static void setXYMinMax(int[] miniMaxX, int[] miniMaxY, Vertex b, Vertex c) {
+        if ((int) b.getX() > miniMaxX[1]) {
+            miniMaxX[1] = (int) b.getX();
+        }
+
+        if ((int) c.getX() > miniMaxX[1]) {
+            miniMaxX[1] = (int) c.getX();
+        }
+
+        if ((int) b.getY() > miniMaxY[1]) {
+            miniMaxY[1] = (int) b.getY();
+        }
+
+        if ((int) c.getY() > miniMaxY[1]) {
+            miniMaxY[1] = (int) c.getY();
+        }
+
+        if ((int) b.getX() < miniMaxX[0]) {
+            miniMaxX[0] = (int) b.getX();
+        }
+
+        if ((int) c.getX() < miniMaxX[0]) {
+            miniMaxX[0] = (int) c.getX();
+        }
+
+        if ((int) b.getY() < miniMaxY[0]) {
+            miniMaxY[0] = (int) b.getY();
+        }
+
+        if ((int) c.getY() < miniMaxY[0]) {
+            miniMaxY[0] = (int) c.getY();
         }
     }
 
@@ -463,6 +549,11 @@ public class Index {
         s.setZ(v1.getX() * v2.getY() - v1.getY() * v2.getX());
 
         return s;
+    }
+
+    static double getDistance(Vertex a, Vertex b) {
+        return Math.sqrt(
+                Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2) + Math.pow(a.getZ() - b.getZ(), 2));
     }
 
 }
