@@ -10,7 +10,9 @@ public class Index {
     static int[] defaultFrameSize = { 800, 500 };
     static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 1000 };
     static int[] cameraMovement = { 0, 0, 0 };
+
     static int renderDistance = 200;
+    static int renderQuality = 2; // the lower the better
 
     static Vertex xAxis = new Vertex(1, 0, 0);
     static Vertex yAxis = new Vertex(0, 1, 0);
@@ -174,7 +176,7 @@ public class Index {
 
                     Shape shape = shapes[s];
 
-                    rayRendering(shape, 1000 + (int) Math.abs(cameraPos[2]), g);
+                    rayRendering(shape, 1000, g);
 
                 }
 
@@ -316,81 +318,83 @@ public class Index {
 
         setXYMinMax(miniMaxX, miniMaxY, b, c);
 
-        for (int i = 0; i < amountOfRays; i++) {
+        for (int x = miniMaxX[0]; x < miniMaxX[1]; x += renderQuality) {
+            for (int y = miniMaxY[0]; y < miniMaxY[1]; y += renderQuality) {
 
-            Ray camRay;
-            camRay = new Ray(new Vertex(rand.nextInt(miniMaxX[1] - miniMaxX[0] + 1) + miniMaxX[0],
-                    rand.nextInt(miniMaxY[1] - miniMaxY[0] + 1) + miniMaxY[0], // makes sure that rays will only
-                    cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To render reflections
-                                               // in the future I can get a line from the camera to the rendered dot
+                Ray camRay;
+                camRay = new Ray(new Vertex(x, // makes sure that rays will only
+                        y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To render reflections
+                                                      // in the future I can get a line from the camera to the rendered
+                                                      // dot
 
-            Vertex triEdge1 = vectorSubtraction(b, a);
-            Vertex triEdge2 = vectorSubtraction(c, a);
-            Vertex triFlatNormal = crossProduct(triEdge1, triEdge2);
+                Vertex triEdge1 = vectorSubtraction(b, a);
+                Vertex triEdge2 = vectorSubtraction(c, a);
+                Vertex triFlatNormal = crossProduct(triEdge1, triEdge2);
 
-            Vertex triPlaneNormal = triFlatNormal;
-            Vertex triPlanePointOn = a;
+                Vertex triPlaneNormal = triFlatNormal;
+                Vertex triPlanePointOn = a;
 
-            double nDotD = dotProduct(triPlaneNormal, camRay.getDirection());
+                double nDotD = dotProduct(triPlaneNormal, camRay.getDirection());
 
-            if (Math.abs(nDotD) <= 0.0001) {
-                return;
-            }
-
-            double nDotPs = dotProduct(triPlaneNormal, vectorSubtraction(triPlanePointOn, camRay.startingPoint));
-            camRay.setT(nDotPs / nDotD);
-
-            Vertex planePoint = vectorAddition(camRay.startingPoint,
-                    vectorMultiplication(camRay.getDirection(), camRay.t));
-
-            if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] && planePoint.getY() >= 0
-                    && planePoint.getY() < defaultFrameSize[1]
-                    && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] != null
-                    && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] > planePoint.getZ()) {
-                return;
-            }
-
-            Vertex aToBEdge = vectorSubtraction(b, a);
-            Vertex bToCEdge = vectorSubtraction(c, b);
-            Vertex cToAEdge = vectorSubtraction(a, c);
-
-            Vertex aToPoint = vectorSubtraction(planePoint, a);
-            Vertex bToPoint = vectorSubtraction(planePoint, b);
-            Vertex cToPoint = vectorSubtraction(planePoint, c);
-
-            Vertex aTestVec = crossProduct(aToBEdge, aToPoint);
-            Vertex bTestVec = crossProduct(bToCEdge, bToPoint);
-            Vertex cTestVec = crossProduct(cToAEdge, cToPoint);
-
-            boolean aTestVecMatchesNormal = dotProduct(aTestVec, triFlatNormal) > 0;
-            boolean bTestVecMatchesNormal = dotProduct(bTestVec, triFlatNormal) > 0;
-            boolean cTestVecMatchesNormal = dotProduct(cTestVec, triFlatNormal) > 0;
-
-            if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
-
-                double distanceToLight = getDistance(planePoint, light);
-
-                int red = shapeColor.getRed() * 400 / ((int) distanceToLight + 1);
-                int green = shapeColor.getGreen() * 400 / ((int) distanceToLight + 1);
-                int blue = shapeColor.getBlue() * 400 / ((int) distanceToLight + 1);
-
-                if (red > 255) {
-                    red = 255;
-                }
-                if (green > 255) {
-                    green = 255;
-                }
-                if (blue > 255) {
-                    blue = 255;
+                if (Math.abs(nDotD) <= 0.0001) {
+                    return;
                 }
 
-                // System.out.println(red);
-                // System.out.println(green);
-                // System.out.println(blue);
+                double nDotPs = dotProduct(triPlaneNormal, vectorSubtraction(triPlanePointOn, camRay.startingPoint));
+                camRay.setT(nDotPs / nDotD);
 
-                g.setColor(new Color(red, green, blue));
+                Vertex planePoint = vectorAddition(camRay.startingPoint,
+                        vectorMultiplication(camRay.getDirection(), camRay.t));
 
-                g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), 5, 5);
+                if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] && planePoint.getY() >= 0
+                        && planePoint.getY() < defaultFrameSize[1]
+                        && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] != null
+                        && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] > planePoint.getZ()) {
+                    return;
+                }
+
+                Vertex aToBEdge = vectorSubtraction(b, a);
+                Vertex bToCEdge = vectorSubtraction(c, b);
+                Vertex cToAEdge = vectorSubtraction(a, c);
+
+                Vertex aToPoint = vectorSubtraction(planePoint, a);
+                Vertex bToPoint = vectorSubtraction(planePoint, b);
+                Vertex cToPoint = vectorSubtraction(planePoint, c);
+
+                Vertex aTestVec = crossProduct(aToBEdge, aToPoint);
+                Vertex bTestVec = crossProduct(bToCEdge, bToPoint);
+                Vertex cTestVec = crossProduct(cToAEdge, cToPoint);
+
+                boolean aTestVecMatchesNormal = dotProduct(aTestVec, triFlatNormal) > 0;
+                boolean bTestVecMatchesNormal = dotProduct(bTestVec, triFlatNormal) > 0;
+                boolean cTestVecMatchesNormal = dotProduct(cTestVec, triFlatNormal) > 0;
+
+                if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
+
+                    double distanceToLight = getDistance(planePoint, light);
+
+                    int red = shapeColor.getRed() * 400 / ((int) distanceToLight + 1);
+                    int green = shapeColor.getGreen() * 400 / ((int) distanceToLight + 1);
+                    int blue = shapeColor.getBlue() * 400 / ((int) distanceToLight + 1);
+
+                    if (red > 255) {
+                        red = 255;
+                    }
+                    if (green > 255) {
+                        green = 255;
+                    }
+                    if (blue > 255) {
+                        blue = 255;
+                    }
+
+                    // System.out.println(red);
+                    // System.out.println(green);
+                    // System.out.println(blue);
+
+                    g.setColor(new Color(red, green, blue));
+
+                    g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), renderQuality, renderQuality);
+                }
             }
 
         }
