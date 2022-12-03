@@ -10,6 +10,18 @@ public class Vertex {
         this.z = z;
     }
 
+    Vertex(Vertex v) {
+        this.x = v.getX();
+        this.y = v.getY();
+        this.z = v.getZ();
+    }
+
+    Vertex() {
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+    }
+
     public void setLocation(double x, double y, double z) {
         this.x = x;
         this.y = y;
@@ -44,6 +56,12 @@ public class Vertex {
 
     public double getZ() {
         return z;
+    }
+
+    public void printValues() {
+        System.out.println("x: " + x);
+        System.out.println("y: " + y);
+        System.out.println("z: " + z);
     }
 
 }
