@@ -8,17 +8,19 @@ public class Index {
     static JFrame frame;
     static private JPanel panel;
     static int[] defaultFrameSize = { 800, 500 };
-    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 1000 };
+    static int[] cameraPos = { defaultFrameSize[0] / 2, defaultFrameSize[1] / 2, 100 };
     static int[] cameraMovement = { 0, 0, 0 };
+    static Vector3 viewportPos = new Vector3(0, 0, 1);
+    static int[] viewportSize = new int[] { defaultFrameSize[0], defaultFrameSize[1] };
 
     static int renderDistance = 200;
-    static int renderQuality = 2; // the lower the better
+    static int renderQuality = 1; // the closer to 1 the better
 
-    static Vertex xAxis = new Vertex(1, 0, 0);
-    static Vertex yAxis = new Vertex(0, 1, 0);
-    static Vertex zAxis = new Vertex(0, 0, 1);
+    static Vector3 xAxis = new Vector3(1, 0, 0);
+    static Vector3 yAxis = new Vector3(0, 1, 0);
+    static Vector3 zAxis = new Vector3(0, 0, 1);
 
-    static Vertex light = new Vertex(0, 0, 0);
+    static Vector3 light = new Vector3(0, 0, 0);
 
     static Double[][] lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
 
@@ -30,41 +32,41 @@ public class Index {
         Shape cube2 = new Shape();
         Shape cube3 = new Shape();
 
-        cube.addVertex(new Vertex(350, 300, 0));
-        cube.addVertex(new Vertex(450, 300, 0));
-        cube.addVertex(new Vertex(450, 200, 0));
-        cube.addVertex(new Vertex(350, 200, 0));
+        cube.addVector3(new Vector3(-50, 50, 0));
+        cube.addVector3(new Vector3(50, 50, 0));
+        cube.addVector3(new Vector3(50, -50, 0));
+        cube.addVector3(new Vector3(-50, -50, 0));
 
-        cube.addVertex(new Vertex(350, 300, -100));
-        cube.addVertex(new Vertex(450, 300, -100));
-        cube.addVertex(new Vertex(450, 200, -100));
-        cube.addVertex(new Vertex(350, 200, -100));
+        cube.addVector3(new Vector3(-50, 50, -100));
+        cube.addVector3(new Vector3(50, 50, -100));
+        cube.addVector3(new Vector3(50, -50, -100));
+        cube.addVector3(new Vector3(-50, -50, -100));
 
         shapes[0] = cube;
         shapes[0].setColor(new Color(20, 20, 255));
 
-        cube2.addVertex(new Vertex(350, 300, -200));
-        cube2.addVertex(new Vertex(450, 300, -200));
-        cube2.addVertex(new Vertex(450, 200, -200));
-        cube2.addVertex(new Vertex(350, 200, -200));
+        cube2.addVector3(new Vector3(-50, 50, -200));
+        cube2.addVector3(new Vector3(50, 50, -200));
+        cube2.addVector3(new Vector3(50, -50, -200));
+        cube2.addVector3(new Vector3(-50, -50, -200));
 
-        cube2.addVertex(new Vertex(350, 300, -300));
-        cube2.addVertex(new Vertex(450, 300, -300));
-        cube2.addVertex(new Vertex(450, 200, -300));
-        cube2.addVertex(new Vertex(350, 200, -300));
+        cube2.addVector3(new Vector3(-50, 50, -300));
+        cube2.addVector3(new Vector3(50, 50, -300));
+        cube2.addVector3(new Vector3(50, -50, -300));
+        cube2.addVector3(new Vector3(-50, -50, -300));
 
         shapes[1] = cube2;
         shapes[1].setColor(new Color(255, 20, 20));
 
-        cube3.addVertex(new Vertex(350, 300, -400));
-        cube3.addVertex(new Vertex(450, 300, -400));
-        cube3.addVertex(new Vertex(450, 200, -400));
-        cube3.addVertex(new Vertex(350, 200, -400));
+        cube3.addVector3(new Vector3(-50, 50, -400));
+        cube3.addVector3(new Vector3(50, 50, -400));
+        cube3.addVector3(new Vector3(50, -50, -400));
+        cube3.addVector3(new Vector3(-50, -50, -400));
 
-        cube3.addVertex(new Vertex(350, 300, -500));
-        cube3.addVertex(new Vertex(450, 300, -500));
-        cube3.addVertex(new Vertex(450, 200, -500));
-        cube3.addVertex(new Vertex(350, 200, -500));
+        cube3.addVector3(new Vector3(-50, 50, -500));
+        cube3.addVector3(new Vector3(50, 50, -500));
+        cube3.addVector3(new Vector3(50, -50, -500));
+        cube3.addVector3(new Vector3(-50, -50, -500));
 
         shapes[2] = cube3;
         shapes[2].setColor(new Color(20, 255, 20));
@@ -110,32 +112,44 @@ public class Index {
                     cameraPos[2] += 5;
                     panel.repaint();
                 } else if (e.getKeyCode() == 88) {
-                    Vertex[] vertices = shapes[0].getVertices();
                     double angle = -0.3;
-                    shapes[0].addXAxisRotation(angle);
-                    for (int i = 0; i < vertices.length; i++) {
-                        rotateXAxis(vertices[i], angle, 400, 250, -50);
+                    for (int s = 0; s < shapes.length; s++) {
+                        Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
+                        Vector3[] vertices = shapes[s].getVertices();
+                        shapes[s].addXAxisRotation(angle);
+                        for (int i = 0; i < vertices.length; i++) {
+                            rotateXAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
+                                    (int) middlePoint.getZ());
+                        }
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 89) {
-                    Vertex[] vertices = shapes[0].getVertices();
                     double angle = -0.3;
-                    shapes[0].addYAxisRotation(angle);
-                    for (int i = 0; i < vertices.length; i++) {
-                        rotateYAxis(vertices[i], angle, 400, 250, -50);
+                    for (int s = 0; s < shapes.length; s++) {
+                        Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
+                        Vector3[] vertices = shapes[s].getVertices();
+                        shapes[s].addYAxisRotation(angle);
+                        for (int i = 0; i < vertices.length; i++) {
+                            rotateYAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
+                                    (int) middlePoint.getZ());
+                        }
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 90) {
-                    Vertex[] vertices = shapes[0].getVertices();
                     double angle = -0.3;
-                    shapes[0].addZAxisRotation(angle);
-                    for (int i = 0; i < vertices.length; i++) {
-                        rotateZAxis(vertices[i], angle, 400, 250, -50);
+                    for (int s = 0; s < shapes.length; s++) {
+                        Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
+                        Vector3[] vertices = shapes[s].getVertices();
+                        shapes[s].addZAxisRotation(angle);
+                        for (int i = 0; i < vertices.length; i++) {
+                            rotateZAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
+                                    (int) middlePoint.getZ());
+                        }
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 37) {
                     for (int a = 0; a < shapes.length; a++) {
-                        Vertex[] vertices = shapes[a].getVertices();
+                        Vector3[] vertices = shapes[a].getVertices();
                         double angle = -45;
                         shapes[0].addYAxisRotation(angle);
                         for (int i = 0; i < vertices.length; i++) {
@@ -145,7 +159,7 @@ public class Index {
                     panel.repaint();
                 } else if (e.getKeyCode() == 39) {
                     for (int a = 0; a < shapes.length; a++) {
-                        Vertex[] vertices = shapes[a].getVertices();
+                        Vector3[] vertices = shapes[a].getVertices();
                         double angle = 45;
                         shapes[0].addYAxisRotation(angle);
                         for (int i = 0; i < vertices.length; i++) {
@@ -189,7 +203,7 @@ public class Index {
 
     }
 
-    static void rotateZAxis(Vertex vertex, double angle, int... rotateAround) {
+    static void rotateZAxis(Vector3 vertex, double angle, int... rotateAround) {
 
         int px = rotateAround[0];
         int py = rotateAround[1];
@@ -204,7 +218,7 @@ public class Index {
 
     }
 
-    static void rotateXAxis(Vertex vertex, double angle, int... rotateAround) {
+    static void rotateXAxis(Vector3 vertex, double angle, int... rotateAround) {
 
         int py = rotateAround[1];
         int pz = rotateAround[2];
@@ -219,21 +233,21 @@ public class Index {
 
     }
 
-    static void connectVertices(int index1, int index2, Vertex[] vertices, Graphics g) {
-        Vertex v1 = getPerspectiveOffset(vertices[index1]);
-        Vertex v2 = getPerspectiveOffset(vertices[index2]);
+    static void connectVertices(int index1, int index2, Vector3[] vertices, Graphics g) {
+        Vector3 v1 = getPerspectiveOffset(vertices[index1]);
+        Vector3 v2 = getPerspectiveOffset(vertices[index2]);
         if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2]) {
             return;
         }
         g.drawLine((int) v1.getX(), (int) v1.getY(), (int) v2.getX(), (int) v2.getY());
     }
 
-    static void drawFace(int index1, int index2, int index3, int index4, Vertex[] vertices, Graphics g,
+    static void drawFace(int index1, int index2, int index3, int index4, Vector3[] vertices, Graphics g,
             boolean shouldFill) {
-        Vertex v1 = getPerspectiveOffset(vertices[index1]);
-        Vertex v2 = getPerspectiveOffset(vertices[index2]);
-        Vertex v3 = getPerspectiveOffset(vertices[index3]);
-        Vertex v4 = getPerspectiveOffset(vertices[index4]);
+        Vector3 v1 = getPerspectiveOffset(vertices[index1]);
+        Vector3 v2 = getPerspectiveOffset(vertices[index2]);
+        Vector3 v3 = getPerspectiveOffset(vertices[index3]);
+        Vector3 v4 = getPerspectiveOffset(vertices[index4]);
 
         if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2] && v3.getZ() > cameraPos[2]
                 && v4.getZ() > cameraPos[2]) {
@@ -256,11 +270,11 @@ public class Index {
 
     static void rayRendering(Shape shape, int amountOfRays, Graphics g) {
 
-        Vertex[] vertices = shape.getVertices();
+        Vector3[] vertices = shape.getVertices();
 
         for (int i = 0; i < 4; i++) {
 
-            Vertex v1, v2, v3, v4;
+            Vector3 v1, v2, v3, v4;
             v1 = getPerspectiveOffset(vertices[i]);
             v2 = getPerspectiveOffset(vertices[i + 4]);
             v3 = getPerspectiveOffset(vertices[(i + 1) % 4 + 4]);
@@ -285,7 +299,7 @@ public class Index {
 
         for (int i = 0; i < 2; i++) {
 
-            Vertex v1, v2, v3, v4;
+            Vector3 v1, v2, v3, v4;
             v1 = getPerspectiveOffset(vertices[0 + 4 * i]);
             v2 = getPerspectiveOffset(vertices[1 + 4 * i]);
             v3 = getPerspectiveOffset(vertices[2 + 4 * i]);
@@ -309,7 +323,8 @@ public class Index {
         }
     }
 
-    static void rayTriangleIntersection(Vertex a, Vertex b, Vertex c, int amountOfRays, Graphics g, Color shapeColor) {
+    static void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c, int amountOfRays, Graphics g,
+            Color shapeColor) {
 
         Random rand = new Random();
 
@@ -322,17 +337,17 @@ public class Index {
             for (int y = miniMaxY[0]; y < miniMaxY[1]; y += renderQuality) {
 
                 Ray camRay;
-                camRay = new Ray(new Vertex(x, // makes sure that rays will only
+                camRay = new Ray(new Vector3(x, // makes sure that rays will only
                         y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To render reflections
                                                       // in the future I can get a line from the camera to the rendered
                                                       // dot
 
-                Vertex triEdge1 = vectorSubtraction(b, a);
-                Vertex triEdge2 = vectorSubtraction(c, a);
-                Vertex triFlatNormal = crossProduct(triEdge1, triEdge2);
+                Vector3 triEdge1 = vectorSubtraction(b, a);
+                Vector3 triEdge2 = vectorSubtraction(c, a);
+                Vector3 triFlatNormal = crossProduct(triEdge1, triEdge2);
 
-                Vertex triPlaneNormal = triFlatNormal;
-                Vertex triPlanePointOn = a;
+                Vector3 triPlaneNormal = triFlatNormal;
+                Vector3 triPlanePointOn = a;
 
                 double nDotD = dotProduct(triPlaneNormal, camRay.getDirection());
 
@@ -343,7 +358,7 @@ public class Index {
                 double nDotPs = dotProduct(triPlaneNormal, vectorSubtraction(triPlanePointOn, camRay.startingPoint));
                 camRay.setT(nDotPs / nDotD);
 
-                Vertex planePoint = vectorAddition(camRay.startingPoint,
+                Vector3 planePoint = vectorAddition(camRay.startingPoint,
                         vectorMultiplication(camRay.getDirection(), camRay.t));
 
                 if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] && planePoint.getY() >= 0
@@ -353,17 +368,17 @@ public class Index {
                     return;
                 }
 
-                Vertex aToBEdge = vectorSubtraction(b, a);
-                Vertex bToCEdge = vectorSubtraction(c, b);
-                Vertex cToAEdge = vectorSubtraction(a, c);
+                Vector3 aToBEdge = vectorSubtraction(b, a);
+                Vector3 bToCEdge = vectorSubtraction(c, b);
+                Vector3 cToAEdge = vectorSubtraction(a, c);
 
-                Vertex aToPoint = vectorSubtraction(planePoint, a);
-                Vertex bToPoint = vectorSubtraction(planePoint, b);
-                Vertex cToPoint = vectorSubtraction(planePoint, c);
+                Vector3 aToPoint = vectorSubtraction(planePoint, a);
+                Vector3 bToPoint = vectorSubtraction(planePoint, b);
+                Vector3 cToPoint = vectorSubtraction(planePoint, c);
 
-                Vertex aTestVec = crossProduct(aToBEdge, aToPoint);
-                Vertex bTestVec = crossProduct(bToCEdge, bToPoint);
-                Vertex cTestVec = crossProduct(cToAEdge, cToPoint);
+                Vector3 aTestVec = crossProduct(aToBEdge, aToPoint);
+                Vector3 bTestVec = crossProduct(bToCEdge, bToPoint);
+                Vector3 cTestVec = crossProduct(cToAEdge, cToPoint);
 
                 boolean aTestVecMatchesNormal = dotProduct(aTestVec, triFlatNormal) > 0;
                 boolean bTestVecMatchesNormal = dotProduct(bTestVec, triFlatNormal) > 0;
@@ -396,7 +411,7 @@ public class Index {
         }
     }
 
-    static void setXYMinMax(int[] miniMaxX, int[] miniMaxY, Vertex b, Vertex c) {
+    static void setXYMinMax(int[] miniMaxX, int[] miniMaxY, Vector3 b, Vector3 c) {
         if ((int) b.getX() > miniMaxX[1]) {
             miniMaxX[1] = (int) b.getX();
         }
@@ -430,7 +445,7 @@ public class Index {
         }
     }
 
-    static void rotateYAxis(Vertex vertex, double angle, int... rotateAround) {
+    static void rotateYAxis(Vector3 vertex, double angle, int... rotateAround) {
 
         int px = rotateAround[0];
         int pz = rotateAround[2];
@@ -445,53 +460,25 @@ public class Index {
 
     }
 
-    static Vertex getPerspectiveOffset(Vertex vertex) {
+    static Vector3 getPerspectiveOffset(Vector3 vertex) {
 
-        double offsetPerZForX = (cameraPos[0] - vertex.getX()) / 6;
-        if (offsetPerZForX < 0)
-            offsetPerZForX *= -1;
+        Vector3 currVector3 = new Vector3(vertex.getX(), vertex.getY(), vertex.getZ());
 
-        double offsetPerZForY = (cameraPos[1] - vertex.getY()) / 6;
-        if (offsetPerZForY < 0)
-            offsetPerZForY *= -1;
+        double z = Math.abs(currVector3.getZ());
 
-        Vertex currVertex = new Vertex(vertex.getX(), vertex.getY(), vertex.getZ());
+        currVector3.setX(
+                (currVector3.getX() - cameraMovement[0]) / ((z + cameraPos[2]) / 1000 + 1)
+                        + defaultFrameSize[0] / 2);
+        currVector3.setY((currVector3.getY() - cameraMovement[1]) / ((z + cameraPos[2]) / 1000 + 1)
+                + defaultFrameSize[1] / 2);
 
-        if (currVertex.getX() <= cameraPos[0]) {
-
-            currVertex.setX(
-                    currVertex.getX() - cameraMovement[0]
-                            + offsetPerZForX * (-currVertex.getZ() + cameraMovement[2]) / 100);
-
-        } else if (currVertex.getX() > cameraPos[0]) {
-
-            currVertex.setX(
-                    currVertex.getX() - cameraMovement[0]
-                            - offsetPerZForX * (-currVertex.getZ() + cameraMovement[2]) / 100);
-
-        }
-
-        if (currVertex.getY() <= cameraPos[1]) {
-
-            currVertex.setY(
-                    currVertex.getY() - cameraMovement[1]
-                            + offsetPerZForY * (-currVertex.getZ() + cameraMovement[2]) / 100);
-
-        } else if (currVertex.getY() > cameraPos[1]) {
-
-            currVertex.setY(
-                    currVertex.getY() - cameraMovement[1]
-                            - offsetPerZForY * (-currVertex.getZ() + cameraMovement[2]) / 100);
-
-        }
-
-        return currVertex;
+        return currVector3;
 
     }
 
-    static Vertex vectorSubtraction(Vertex v1, Vertex v2) {
+    static Vector3 vectorSubtraction(Vector3 v1, Vector3 v2) {
 
-        Vertex res = new Vertex();
+        Vector3 res = new Vector3();
 
         res.setX(v1.getX() - v2.getX());
         res.setY(v1.getY() - v2.getY());
@@ -501,9 +488,9 @@ public class Index {
 
     }
 
-    static Vertex vectorAddition(Vertex v1, Vertex v2) {
+    static Vector3 vectorAddition(Vector3 v1, Vector3 v2) {
 
-        Vertex res = new Vertex();
+        Vector3 res = new Vector3();
 
         res.setX(v1.getX() + v2.getX());
         res.setY(v1.getY() + v2.getY());
@@ -513,9 +500,9 @@ public class Index {
 
     }
 
-    static Vertex vectorMultiplication(Vertex v1, double value) {
+    static Vector3 vectorMultiplication(Vector3 v1, double value) {
 
-        Vertex res = new Vertex();
+        Vector3 res = new Vector3();
 
         res.setX(v1.getX() * value);
         res.setY(v1.getY() * value);
@@ -525,24 +512,24 @@ public class Index {
 
     }
 
-    static double getVectorLength(Vertex vector) {
+    static double getVectorLength(Vector3 vector) {
         return Math.sqrt(Math.pow(vector.getX(), 2) + Math.pow(vector.getY(), 2) + Math.pow(vector.getZ(), 2));
     }
 
-    static Vertex normalizeVector(Vertex v) {
+    static Vector3 normalizeVector(Vector3 v) {
         double l = getVectorLength(v);
         v.setLocation(v.getX() / l, v.getY() / l, v.getZ() / l);
         return v;
     }
 
-    static double dotProduct(Vertex v1, Vertex v2) {
+    static double dotProduct(Vector3 v1, Vector3 v2) {
 
         return v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ();
 
     }
 
-    static Vertex crossProduct(Vertex v1, Vertex v2) {
-        Vertex s = new Vertex();
+    static Vector3 crossProduct(Vector3 v1, Vector3 v2) {
+        Vector3 s = new Vector3();
 
         s.setX(v1.getY() * v2.getZ() - v1.getZ() * v2.getY());
         s.setY(v1.getZ() * v2.getX() - v1.getX() * v2.getZ());
@@ -551,9 +538,17 @@ public class Index {
         return s;
     }
 
-    static double getDistance(Vertex a, Vertex b) {
+    static double getDistance(Vector3 a, Vector3 b) {
         return Math.sqrt(
                 Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2) + Math.pow(a.getZ() - b.getZ(), 2));
+    }
+
+    static Vector3 getShapeMiddlePoint(Shape s) {
+        int mx = (int) ((s.getBiggestXPoint().getX() + s.getSmallestXPoint().getX()) / 2);
+        int my = (int) ((s.getBiggestYPoint().getY() + s.getSmallestYPoint().getY()) / 2);
+        int mz = (int) ((s.getBiggestZPoint().getZ() + s.getSmallestZPoint().getZ()) / 2);
+
+        return new Vector3(mx, my, mz);
     }
 
 }

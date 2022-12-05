@@ -2,7 +2,7 @@ import java.awt.Color;
 
 public class Shape {
 
-    Vertex[] vertices;
+    Vector3[] vertices;
     double[] rotation;
 
     Integer indexToSmallestX;
@@ -15,17 +15,17 @@ public class Shape {
 
     Color color;
 
-    Shape(Vertex[] vertices) {
+    Shape(Vector3[] vertices) {
         this.vertices = vertices;
         rotation = new double[3];
     }
 
     Shape() {
-        vertices = new Vertex[0];
+        vertices = new Vector3[0];
         rotation = new double[3];
     }
 
-    public void setVertices(Vertex[] vertices) {
+    public void setVertices(Vector3[] vertices) {
         this.vertices = vertices;
     }
 
@@ -41,10 +41,10 @@ public class Shape {
         this.color = color;
     }
 
-    public Vertex getSmallestYPoint() {
+    public Vector3 getSmallestYPoint() {
 
         if (this.indexToSmallestY != null) {
-            return new Vertex(vertices[indexToSmallestY]);
+            return new Vector3(vertices[indexToSmallestY]);
         }
 
         int smallestYPointIndex = 0;
@@ -56,14 +56,14 @@ public class Shape {
         }
 
         indexToSmallestY = smallestYPointIndex;
-        return new Vertex(vertices[smallestYPointIndex]);
+        return new Vector3(vertices[smallestYPointIndex]);
 
     }
 
-    public Vertex getBiggestYPoint() {
+    public Vector3 getBiggestYPoint() {
 
         if (this.indexToBiggestY != null) {
-            return new Vertex(vertices[indexToBiggestY]);
+            return new Vector3(vertices[indexToBiggestY]);
         }
 
         int biggestYPointIndex = 0;
@@ -75,14 +75,14 @@ public class Shape {
         }
 
         indexToBiggestY = biggestYPointIndex;
-        return new Vertex(vertices[biggestYPointIndex]);
+        return new Vector3(vertices[biggestYPointIndex]);
 
     }
 
-    public Vertex getSmallestXPoint() {
+    public Vector3 getSmallestXPoint() {
 
         if (this.indexToSmallestX != null) {
-            return new Vertex(vertices[indexToSmallestX]);
+            return new Vector3(vertices[indexToSmallestX]);
         }
 
         int smallestXPointIndex = 0;
@@ -94,14 +94,14 @@ public class Shape {
         }
 
         indexToSmallestX = smallestXPointIndex;
-        return new Vertex(vertices[smallestXPointIndex]);
+        return new Vector3(vertices[smallestXPointIndex]);
 
     }
 
-    public Vertex getBiggestXPoint() {
+    public Vector3 getBiggestXPoint() {
 
         if (this.indexToBiggestX != null) {
-            return new Vertex(vertices[indexToBiggestX]);
+            return new Vector3(vertices[indexToBiggestX]);
         }
 
         int biggestXPointIndex = 0;
@@ -113,14 +113,14 @@ public class Shape {
         }
 
         indexToBiggestX = biggestXPointIndex;
-        return new Vertex(vertices[biggestXPointIndex]);
+        return new Vector3(vertices[biggestXPointIndex]);
 
     }
 
-    public Vertex getSmallestZPoint() {
+    public Vector3 getSmallestZPoint() {
 
         if (this.indexToSmallestZ != null) {
-            return new Vertex(vertices[indexToSmallestZ]);
+            return new Vector3(vertices[indexToSmallestZ]);
         }
 
         int smallestZPointIndex = 0;
@@ -132,14 +132,14 @@ public class Shape {
         }
 
         indexToSmallestZ = smallestZPointIndex;
-        return new Vertex(vertices[smallestZPointIndex]);
+        return new Vector3(vertices[smallestZPointIndex]);
 
     }
 
-    public Vertex getBiggestZPoint() {
+    public Vector3 getBiggestZPoint() {
 
         if (this.indexToBiggestZ != null) {
-            return new Vertex(vertices[indexToBiggestZ]);
+            return new Vector3(vertices[indexToBiggestZ]);
         }
 
         int biggestZPointIndex = 0;
@@ -151,7 +151,7 @@ public class Shape {
         }
 
         indexToBiggestZ = biggestZPointIndex;
-        return new Vertex(vertices[biggestZPointIndex]);
+        return new Vector3(vertices[biggestZPointIndex]);
 
     }
 
@@ -167,11 +167,11 @@ public class Shape {
         rotation[2] += angle;
     }
 
-    public Vertex[] getVertices() {
+    public Vector3[] getVertices() {
         return vertices;
     }
 
-    public void addVertex(Vertex vertex) {
+    public void addVector3(Vector3 vertex) {
 
         indexToSmallestX = null;
         indexToSmallestY = null;
@@ -181,7 +181,7 @@ public class Shape {
         indexToBiggestY = null;
         indexToBiggestZ = null;
 
-        Vertex[] newVertices = new Vertex[vertices.length + 1];
+        Vector3[] newVertices = new Vector3[vertices.length + 1];
         for (int i = 0; i < vertices.length; i++) {
             if ((double) vertex.getZ() <= vertices[i].getZ() || vertices[i] == null) {
                 newVertices[i] = vertex;

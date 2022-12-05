@@ -1,22 +1,22 @@
-public class Vertex {
+public class Vector3 {
 
     private double x;
     private double y;
     private double z;
 
-    Vertex(double x, double y, double z) {
+    Vector3(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    Vertex(Vertex v) {
+    Vector3(Vector3 v) {
         this.x = v.getX();
         this.y = v.getY();
         this.z = v.getZ();
     }
 
-    Vertex() {
+    Vector3() {
         this.x = 0;
         this.y = 0;
         this.z = 0;

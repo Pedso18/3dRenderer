@@ -1,9 +1,9 @@
 public class Ray {
-    Vertex startingPoint;
-    Vertex direction;
+    Vector3 startingPoint;
+    Vector3 direction;
     double t;
 
-    Ray(Vertex startingPoint, Vertex direction, double t) {
+    Ray(Vector3 startingPoint, Vector3 direction, double t) {
         this.startingPoint = startingPoint;
         this.direction = direction;
         this.t = t;
@@ -13,11 +13,11 @@ public class Ray {
         return t;
     }
 
-    public Vertex getDirection() {
+    public Vector3 getDirection() {
         return direction;
     }
 
-    public void setStartingPoint(Vertex startingPoint) {
+    public void setStartingPoint(Vector3 startingPoint) {
         this.startingPoint = startingPoint;
     }
 
@@ -25,7 +25,7 @@ public class Ray {
         this.t = t;
     }
 
-    public void setDirection(Vertex direction) {
+    public void setDirection(Vector3 direction) {
         this.direction = direction;
     }
 
