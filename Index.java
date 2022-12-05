@@ -387,10 +387,6 @@ public class Index {
                         blue = 255;
                     }
 
-                    // System.out.println(red);
-                    // System.out.println(green);
-                    // System.out.println(blue);
-
                     g.setColor(new Color(red, green, blue));
 
                     g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), renderQuality, renderQuality);
