@@ -1,7 +1,6 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.Random;
 
 public class Index {
 
@@ -30,7 +29,7 @@ public class Index {
 
         Shape cube = new Shape();
         Shape cube2 = new Shape();
-        Shape cube3 = new Shape();
+        Shape ground = new Shape();
 
         cube.addVector3(new Vector3(-50, 50, 0));
         cube.addVector3(new Vector3(50, 50, 0));
@@ -58,17 +57,19 @@ public class Index {
         shapes[1] = cube2;
         shapes[1].setColor(new Color(255, 20, 20));
 
-        cube3.addVector3(new Vector3(-50, 50, -400));
-        cube3.addVector3(new Vector3(50, 50, -400));
-        cube3.addVector3(new Vector3(50, -50, -400));
-        cube3.addVector3(new Vector3(-50, -50, -400));
+        ground.addVector3(new Vector3(-500, 300, 500));
+        ground.addVector3(new Vector3(500, 300, 500));
+        ground.addVector3(new Vector3(500, 300, 500));
+        ground.addVector3(new Vector3(-500, 300, 500));
 
-        cube3.addVector3(new Vector3(-50, 50, -500));
-        cube3.addVector3(new Vector3(50, 50, -500));
-        cube3.addVector3(new Vector3(50, -50, -500));
-        cube3.addVector3(new Vector3(-50, -50, -500));
+        ground.addVector3(new Vector3(-500, 300, -5000));
+        ground.addVector3(new Vector3(500, 300, -5000));
+        ground.addVector3(new Vector3(500, 300, -5000));
+        ground.addVector3(new Vector3(-500, 300, -5000));
 
-        shapes[2] = cube3;
+        ground.setStatic(true);
+
+        shapes[2] = ground;
         shapes[2].setColor(new Color(20, 255, 20));
 
         initGUI(shapes);
@@ -114,36 +115,42 @@ public class Index {
                 } else if (e.getKeyCode() == 88) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
-                        Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
-                        Vector3[] vertices = shapes[s].getVertices();
-                        shapes[s].addXAxisRotation(angle);
-                        for (int i = 0; i < vertices.length; i++) {
-                            rotateXAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
-                                    (int) middlePoint.getZ());
+                        if (shapes[s].getStatic() == false) {
+                            Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
+                            Vector3[] vertices = shapes[s].getVertices();
+                            shapes[s].addXAxisRotation(angle);
+                            for (int i = 0; i < vertices.length; i++) {
+                                rotateXAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
+                                        (int) middlePoint.getZ());
+                            }
                         }
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 89) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
-                        Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
-                        Vector3[] vertices = shapes[s].getVertices();
-                        shapes[s].addYAxisRotation(angle);
-                        for (int i = 0; i < vertices.length; i++) {
-                            rotateYAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
-                                    (int) middlePoint.getZ());
+                        if (shapes[s].getStatic() == false) {
+                            Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
+                            Vector3[] vertices = shapes[s].getVertices();
+                            shapes[s].addYAxisRotation(angle);
+                            for (int i = 0; i < vertices.length; i++) {
+                                rotateYAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
+                                        (int) middlePoint.getZ());
+                            }
                         }
                     }
                     panel.repaint();
                 } else if (e.getKeyCode() == 90) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
-                        Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
-                        Vector3[] vertices = shapes[s].getVertices();
-                        shapes[s].addZAxisRotation(angle);
-                        for (int i = 0; i < vertices.length; i++) {
-                            rotateZAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
-                                    (int) middlePoint.getZ());
+                        if (shapes[s].getStatic() == false) {
+                            Vector3 middlePoint = getShapeMiddlePoint(shapes[s]);
+                            Vector3[] vertices = shapes[s].getVertices();
+                            shapes[s].addZAxisRotation(angle);
+                            for (int i = 0; i < vertices.length; i++) {
+                                rotateZAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
+                                        (int) middlePoint.getZ());
+                            }
                         }
                     }
                     panel.repaint();
@@ -234,8 +241,8 @@ public class Index {
     }
 
     static void connectVertices(int index1, int index2, Vector3[] vertices, Graphics g) {
-        Vector3 v1 = getPerspectiveOffset(vertices[index1]);
-        Vector3 v2 = getPerspectiveOffset(vertices[index2]);
+        Vector3 v1 = getPerspectiveOffset(vertices[index1], false);
+        Vector3 v2 = getPerspectiveOffset(vertices[index2], false);
         if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2]) {
             return;
         }
@@ -244,10 +251,10 @@ public class Index {
 
     static void drawFace(int index1, int index2, int index3, int index4, Vector3[] vertices, Graphics g,
             boolean shouldFill) {
-        Vector3 v1 = getPerspectiveOffset(vertices[index1]);
-        Vector3 v2 = getPerspectiveOffset(vertices[index2]);
-        Vector3 v3 = getPerspectiveOffset(vertices[index3]);
-        Vector3 v4 = getPerspectiveOffset(vertices[index4]);
+        Vector3 v1 = getPerspectiveOffset(vertices[index1], false);
+        Vector3 v2 = getPerspectiveOffset(vertices[index2], false);
+        Vector3 v3 = getPerspectiveOffset(vertices[index3], false);
+        Vector3 v4 = getPerspectiveOffset(vertices[index4], false);
 
         if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2] && v3.getZ() > cameraPos[2]
                 && v4.getZ() > cameraPos[2]) {
@@ -275,10 +282,10 @@ public class Index {
         for (int i = 0; i < 4; i++) {
 
             Vector3 v1, v2, v3, v4;
-            v1 = getPerspectiveOffset(vertices[i]);
-            v2 = getPerspectiveOffset(vertices[i + 4]);
-            v3 = getPerspectiveOffset(vertices[(i + 1) % 4 + 4]);
-            v4 = getPerspectiveOffset(vertices[(i + 1) % 4]);
+            v1 = getPerspectiveOffset(vertices[i], shape.getStatic());
+            v2 = getPerspectiveOffset(vertices[i + 4], shape.getStatic());
+            v3 = getPerspectiveOffset(vertices[(i + 1) % 4 + 4], shape.getStatic());
+            v4 = getPerspectiveOffset(vertices[(i + 1) % 4], shape.getStatic());
 
             if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
                     && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
@@ -300,10 +307,10 @@ public class Index {
         for (int i = 0; i < 2; i++) {
 
             Vector3 v1, v2, v3, v4;
-            v1 = getPerspectiveOffset(vertices[0 + 4 * i]);
-            v2 = getPerspectiveOffset(vertices[1 + 4 * i]);
-            v3 = getPerspectiveOffset(vertices[2 + 4 * i]);
-            v4 = getPerspectiveOffset(vertices[3 + 4 * i]);
+            v1 = getPerspectiveOffset(vertices[0 + 4 * i], shape.getStatic());
+            v2 = getPerspectiveOffset(vertices[1 + 4 * i], shape.getStatic());
+            v3 = getPerspectiveOffset(vertices[2 + 4 * i], shape.getStatic());
+            v4 = getPerspectiveOffset(vertices[3 + 4 * i], shape.getStatic());
 
             if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
                     && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
@@ -326,8 +333,6 @@ public class Index {
     static void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c, int amountOfRays, Graphics g,
             Color shapeColor) {
 
-        Random rand = new Random();
-
         int[] miniMaxX = { (int) a.getX(), (int) a.getX() };
         int[] miniMaxY = { (int) a.getY(), (int) a.getY() };
 
@@ -338,9 +343,10 @@ public class Index {
 
                 Ray camRay;
                 camRay = new Ray(new Vector3(x, // makes sure that rays will only
-                        y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To render reflections
-                                                      // in the future I can get a line from the camera to the rendered
-                                                      // dot
+                        y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To
+                // render reflections
+                // in the future I can get a line from the camera to the rendered
+                // dot
 
                 Vector3 triEdge1 = vectorSubtraction(b, a);
                 Vector3 triEdge2 = vectorSubtraction(c, a);
@@ -355,17 +361,21 @@ public class Index {
                     return;
                 }
 
-                double nDotPs = dotProduct(triPlaneNormal, vectorSubtraction(triPlanePointOn, camRay.startingPoint));
+                double nDotPs = dotProduct(triPlaneNormal, vectorSubtraction(triPlanePointOn,
+                        camRay.startingPoint));
                 camRay.setT(nDotPs / nDotD);
 
                 Vector3 planePoint = vectorAddition(camRay.startingPoint,
                         vectorMultiplication(camRay.getDirection(), camRay.t));
 
-                if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] && planePoint.getY() >= 0
-                        && planePoint.getY() < defaultFrameSize[1]
-                        && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] != null
-                        && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] > planePoint.getZ()) {
-                    return;
+                if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] &&
+                        planePoint.getY() >= 0 && planePoint.getY() < defaultFrameSize[1]) {
+                    if (lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] != null
+                            && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] >= planePoint.getZ()) {
+                        continue;
+                    }
+                } else {
+                    continue;
                 }
 
                 Vector3 aToBEdge = vectorSubtraction(b, a);
@@ -386,6 +396,8 @@ public class Index {
 
                 if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
 
+                    lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] = planePoint.getZ();
+
                     double distanceToLight = getDistance(planePoint, light);
 
                     int red = shapeColor.getRed() * 400 / ((int) distanceToLight + 1);
@@ -403,8 +415,8 @@ public class Index {
                     }
 
                     g.setColor(new Color(red, green, blue));
-
-                    g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), renderQuality, renderQuality);
+                    g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), renderQuality,
+                            renderQuality);
                 }
             }
 
@@ -460,17 +472,18 @@ public class Index {
 
     }
 
-    static Vector3 getPerspectiveOffset(Vector3 vertex) {
+    static Vector3 getPerspectiveOffset(Vector3 vertex, boolean isStatic) {
 
         Vector3 currVector3 = new Vector3(vertex.getX(), vertex.getY(), vertex.getZ());
 
         double z = Math.abs(currVector3.getZ());
 
         currVector3.setX(
-                (currVector3.getX() - cameraMovement[0]) / ((z + cameraPos[2]) / 1000 + 1)
+                (currVector3.getX() - (isStatic == true ? 0 : cameraMovement[0])) / ((z + cameraPos[2]) / 1000 + 1)
                         + defaultFrameSize[0] / 2);
-        currVector3.setY((currVector3.getY() - cameraMovement[1]) / ((z + cameraPos[2]) / 1000 + 1)
-                + defaultFrameSize[1] / 2);
+        currVector3.setY(
+                (currVector3.getY() - (isStatic == true ? 0 : cameraMovement[1])) / ((z + cameraPos[2]) / 1000 + 1)
+                        + defaultFrameSize[1] / 2);
 
         return currVector3;
 

@@ -5,13 +5,15 @@ public class Shape {
     Vector3[] vertices;
     double[] rotation;
 
-    Integer indexToSmallestX;
-    Integer indexToSmallestY;
-    Integer indexToSmallestZ;
+    private Integer indexToSmallestX;
+    private Integer indexToSmallestY;
+    private Integer indexToSmallestZ;
 
-    Integer indexToBiggestX;
-    Integer indexToBiggestY;
-    Integer indexToBiggestZ;
+    private Integer indexToBiggestX;
+    private Integer indexToBiggestY;
+    private Integer indexToBiggestZ;
+
+    private boolean isStatic;
 
     Color color;
 
@@ -39,6 +41,14 @@ public class Shape {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public void setStatic(boolean isStatic) {
+        this.isStatic = isStatic;
+    }
+
+    public boolean getStatic() {
+        return isStatic;
     }
 
     public Vector3 getSmallestYPoint() {
