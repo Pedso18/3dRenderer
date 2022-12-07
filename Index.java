@@ -339,10 +339,12 @@ public class Index {
         setXYMinMax(miniMaxX, miniMaxY, b, c);
 
         for (int x = miniMaxX[0]; x < miniMaxX[1]; x += renderQuality) {
+
+            boolean hasLastHit = false;
+
             for (int y = miniMaxY[0]; y < miniMaxY[1]; y += renderQuality) {
 
-                Ray camRay;
-                camRay = new Ray(new Vector3(x, // makes sure that rays will only
+                Ray camRay = new Ray(new Vector3(x, // makes sure that rays will only
                         y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To
                 // render reflections
                 // in the future I can get a line from the camera to the rendered
@@ -378,7 +380,6 @@ public class Index {
                     continue;
                 }
 
-                Vector3 aToBEdge = vectorSubtraction(b, a);
                 Vector3 bToCEdge = vectorSubtraction(c, b);
                 Vector3 cToAEdge = vectorSubtraction(a, c);
 
@@ -386,7 +387,7 @@ public class Index {
                 Vector3 bToPoint = vectorSubtraction(planePoint, b);
                 Vector3 cToPoint = vectorSubtraction(planePoint, c);
 
-                Vector3 aTestVec = crossProduct(aToBEdge, aToPoint);
+                Vector3 aTestVec = crossProduct(triEdge1, aToPoint);
                 Vector3 bTestVec = crossProduct(bToCEdge, bToPoint);
                 Vector3 cTestVec = crossProduct(cToAEdge, cToPoint);
 
@@ -395,6 +396,8 @@ public class Index {
                 boolean cTestVecMatchesNormal = dotProduct(cTestVec, triFlatNormal) > 0;
 
                 if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
+
+                    hasLastHit = true;
 
                     lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] = planePoint.getZ();
 
@@ -417,6 +420,8 @@ public class Index {
                     g.setColor(new Color(red, green, blue));
                     g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), renderQuality,
                             renderQuality);
+                } else if (hasLastHit) {
+                    break;
                 }
             }
 
