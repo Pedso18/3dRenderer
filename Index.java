@@ -252,41 +252,6 @@ public class Index {
 
     }
 
-    static void connectVertices(int index1, int index2, Vector3[] vertices, Graphics g) {
-        Vector3 v1 = getPerspectiveOffset(vertices[index1], false);
-        Vector3 v2 = getPerspectiveOffset(vertices[index2], false);
-        if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2]) {
-            return;
-        }
-        g.drawLine((int) v1.getX(), (int) v1.getY(), (int) v2.getX(), (int) v2.getY());
-    }
-
-    static void drawFace(int index1, int index2, int index3, int index4, Vector3[] vertices, Graphics g,
-            boolean shouldFill) {
-        Vector3 v1 = getPerspectiveOffset(vertices[index1], false);
-        Vector3 v2 = getPerspectiveOffset(vertices[index2], false);
-        Vector3 v3 = getPerspectiveOffset(vertices[index3], false);
-        Vector3 v4 = getPerspectiveOffset(vertices[index4], false);
-
-        if (v1.getZ() > cameraPos[2] && v2.getZ() > cameraPos[2] && v3.getZ() > cameraPos[2]
-                && v4.getZ() > cameraPos[2]) {
-            return;
-        }
-
-        Polygon tri1 = new Polygon(new int[] { (int) v1.getX(), (int) v2.getX(), (int) v3.getX() },
-                new int[] { (int) v1.getY(), (int) v2.getY(), (int) v3.getY() }, 3);
-        Polygon tri2 = new Polygon(new int[] { (int) v3.getX(), (int) v4.getX(), (int) v1.getX() },
-                new int[] { (int) v3.getY(), (int) v4.getY(), (int) v1.getY() }, 3);
-
-        g.drawPolygon(tri1);
-        g.drawPolygon(tri2);
-
-        if (shouldFill) {
-            g.fillPolygon(new Polygon(new int[] { (int) v1.getX(), (int) v2.getX(), (int) v3.getX(), (int) v4.getX() },
-                    new int[] { (int) v1.getY(), (int) v2.getY(), (int) v3.getY(), (int) v4.getY() }, 4));
-        }
-    }
-
     static void generateFrame(Shape[] shapes, boolean forceRender) {
 
         if (!canRenderNewFrame && !forceRender) {
@@ -341,73 +306,6 @@ public class Index {
 
         return currVector3;
 
-    }
-
-    static Vector3 vectorSubtraction(Vector3 v1, Vector3 v2) {
-
-        Vector3 res = new Vector3();
-
-        res.setX(v1.getX() - v2.getX());
-        res.setY(v1.getY() - v2.getY());
-        res.setZ(v1.getZ() - v2.getZ());
-
-        return res;
-
-    }
-
-    static Vector3 vectorAddition(Vector3 v1, Vector3 v2) {
-
-        Vector3 res = new Vector3();
-
-        res.setX(v1.getX() + v2.getX());
-        res.setY(v1.getY() + v2.getY());
-        res.setZ(v1.getZ() + v2.getZ());
-
-        return res;
-
-    }
-
-    static Vector3 vectorMultiplication(Vector3 v1, double value) {
-
-        Vector3 res = new Vector3();
-
-        res.setX(v1.getX() * value);
-        res.setY(v1.getY() * value);
-        res.setZ(v1.getZ() * value);
-
-        return res;
-
-    }
-
-    static double getVectorLength(Vector3 vector) {
-        return Math.sqrt(Math.pow(vector.getX(), 2) + Math.pow(vector.getY(), 2) + Math.pow(vector.getZ(), 2));
-    }
-
-    static Vector3 normalizeVector(Vector3 v) {
-        double l = getVectorLength(v);
-        v.setLocation(v.getX() / l, v.getY() / l, v.getZ() / l);
-        return v;
-    }
-
-    static double dotProduct(Vector3 v1, Vector3 v2) {
-
-        return v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ();
-
-    }
-
-    static Vector3 crossProduct(Vector3 v1, Vector3 v2) {
-        Vector3 s = new Vector3();
-
-        s.setX(v1.getY() * v2.getZ() - v1.getZ() * v2.getY());
-        s.setY(v1.getZ() * v2.getX() - v1.getX() * v2.getZ());
-        s.setZ(v1.getX() * v2.getY() - v1.getY() * v2.getX());
-
-        return s;
-    }
-
-    static double getDistance(Vector3 a, Vector3 b) {
-        return Math.sqrt(
-                Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2) + Math.pow(a.getZ() - b.getZ(), 2));
     }
 
     static Vector3 getShapeMiddlePoint(Shape s) {
