@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.Arrays;
 
 public class Index {
 
@@ -21,7 +22,8 @@ public class Index {
 
     static Vector3 light = new Vector3(0, 0, 0);
 
-    static Double[][] lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
+    volatile static Double[][] lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
+    volatile static Color[][] framePixels = new Color[defaultFrameSize[0]][defaultFrameSize[1]];
 
     public static void main(String[] args) {
 
@@ -91,27 +93,27 @@ public class Index {
                 if (e.getKeyCode() == 65) { // a
                     cameraPos[0] -= 6;
                     cameraMovement[0] -= 6;
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 68) { // d
                     cameraPos[0] += 6;
                     cameraMovement[0] += 6;
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 69) { // e
                     cameraPos[1] -= 6;
                     cameraMovement[1] -= 6;
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 81) { // q
                     cameraPos[1] += 6;
                     cameraMovement[1] += 6;
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 87) { // w
                     cameraMovement[2] -= 5;
                     cameraPos[2] -= 5;
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 83) { // s
                     cameraMovement[2] += 5;
                     cameraPos[2] += 5;
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 88) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
@@ -125,7 +127,7 @@ public class Index {
                             }
                         }
                     }
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 89) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
@@ -139,7 +141,7 @@ public class Index {
                             }
                         }
                     }
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 90) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
@@ -153,7 +155,7 @@ public class Index {
                             }
                         }
                     }
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 37) {
                     for (int a = 0; a < shapes.length; a++) {
                         Vector3[] vertices = shapes[a].getVertices();
@@ -163,7 +165,7 @@ public class Index {
                             rotateYAxis(vertices[i], angle, cameraPos[0], cameraPos[1], cameraPos[2]);
                         }
                     }
-                    panel.repaint();
+                    generateFrame(shapes);
                 } else if (e.getKeyCode() == 39) {
                     for (int a = 0; a < shapes.length; a++) {
                         Vector3[] vertices = shapes[a].getVertices();
@@ -173,7 +175,7 @@ public class Index {
                             rotateYAxis(vertices[i], angle, cameraPos[0], cameraPos[1], cameraPos[2]);
                         }
                     }
-                    panel.repaint();
+                    generateFrame(shapes);
                 }
 
             }
@@ -187,23 +189,21 @@ public class Index {
         panel = new JPanel() {
 
             protected void paintComponent(Graphics g) {
-
-                lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
-
                 g.setColor(new Color(0, 0, 0));
                 g.fillRect(0, 0, defaultFrameSize[0], defaultFrameSize[1]);
-
-                for (int s = shapes.length - 1; s >= 0; s--) {
-
-                    Shape shape = shapes[s];
-
-                    rayRendering(shape, 1000, g);
-
+                for (int x = 0; x < defaultFrameSize[0]; x += renderQuality) {
+                    for (int y = 0; y < defaultFrameSize[1]; y += renderQuality) {
+                        if (framePixels[x][y] != null) {
+                            g.setColor(framePixels[x][y]);
+                            g.fillRect(x, y, renderQuality, renderQuality);
+                        }
+                    }
                 }
-
             }
 
         };
+
+        generateFrame(shapes);
 
         frame.add(panel);
         frame.setVisible(true);
@@ -275,62 +275,59 @@ public class Index {
         }
     }
 
-    static void rayRendering(Shape shape, int amountOfRays, Graphics g) {
+    static void generateFrame(Shape[] shapes) {
 
-        Vector3[] vertices = shape.getVertices();
+        lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
+        framePixels = new Color[defaultFrameSize[0]][defaultFrameSize[1]];
 
-        for (int i = 0; i < 4; i++) {
+        int amountOfHalfShapes = (int) (shapes.length / 2);
 
-            Vector3 v1, v2, v3, v4;
-            v1 = getPerspectiveOffset(vertices[i], shape.getStatic());
-            v2 = getPerspectiveOffset(vertices[i + 4], shape.getStatic());
-            v3 = getPerspectiveOffset(vertices[(i + 1) % 4 + 4], shape.getStatic());
-            v4 = getPerspectiveOffset(vertices[(i + 1) % 4], shape.getStatic());
+        System.out.println("amount of half shapes: " + amountOfHalfShapes);
 
-            if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                    && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                    && v1.getY() > -200
-                    && v2.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                    && v2.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                rayTriangleIntersection(v1, v2, v3, amountOfRays, g, shape.color);
-            }
-            if (v1.getX() > -200 && v4.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                    && v4.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                    && v1.getY() > -200
-                    && v4.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                    && v4.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                rayTriangleIntersection(v3, v4, v1, amountOfRays, g, shape.color);
-            }
+        Shape[] shapesTo1 = new Shape[amountOfHalfShapes];
+        Shape[] shapesTo2 = new Shape[shapes.length - amountOfHalfShapes];
 
-        }
+        int indexOf1 = 0;
+        int indexOf2 = 0;
 
-        for (int i = 0; i < 2; i++) {
+        for (int s = 0; s < shapes.length; s++) {
 
-            Vector3 v1, v2, v3, v4;
-            v1 = getPerspectiveOffset(vertices[0 + 4 * i], shape.getStatic());
-            v2 = getPerspectiveOffset(vertices[1 + 4 * i], shape.getStatic());
-            v3 = getPerspectiveOffset(vertices[2 + 4 * i], shape.getStatic());
-            v4 = getPerspectiveOffset(vertices[3 + 4 * i], shape.getStatic());
+            System.out.println(s);
 
-            if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                    && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                    && v1.getY() > -200
-                    && v2.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                    && v2.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                rayTriangleIntersection(v1, v2, v3, amountOfRays, g, shape.color);
-            }
-            if (v1.getX() > -200 && v4.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                    && v4.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                    && v1.getY() > -200
-                    && v4.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                    && v4.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                rayTriangleIntersection(v3, v4, v1, amountOfRays, g, shape.color);
+            if (s % 2 == 0) {
+                shapesTo2[indexOf2] = shapes[s];
+                indexOf2++;
+            } else {
+                shapesTo1[indexOf1] = shapes[s];
+                indexOf1++;
             }
 
         }
+
+        RenderingThread[] renderingThreads = new RenderingThread[2];
+
+        renderingThreads[0] = new RenderingThread(lastZRayCoords, renderQuality, cameraPos, defaultFrameSize,
+                light, shapesTo1, cameraMovement, framePixels);
+
+        renderingThreads[1] = new RenderingThread(lastZRayCoords, renderQuality, cameraPos, defaultFrameSize,
+                light, shapesTo2, cameraMovement, framePixels);
+
+        renderingThreads[0].start();
+        renderingThreads[1].start();
+
+        try {
+            for (RenderingThread renderingThread : renderingThreads) {
+                renderingThread.join();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        panel.repaint();
+
     }
 
-    static void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c, int amountOfRays, Graphics g,
+    static void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c,
             Color shapeColor) {
 
         int[] miniMaxX = { (int) a.getX(), (int) a.getX() };
@@ -417,9 +414,8 @@ public class Index {
                         blue = 255;
                     }
 
-                    g.setColor(new Color(red, green, blue));
-                    g.fillRect((int) planePoint.getX(), (int) planePoint.getY(), renderQuality,
-                            renderQuality);
+                    framePixels[x][y] = new Color(red, green, blue);
+
                 } else if (hasLastHit) {
                     break;
                 }
