@@ -1,7 +1,6 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.Arrays;
 
 public class Index {
 
@@ -24,6 +23,9 @@ public class Index {
 
     volatile static Double[][] lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
     volatile static Color[][] framePixels = new Color[defaultFrameSize[0]][defaultFrameSize[1]];
+
+    static int maxFps = 15;
+    static boolean canRenderNewFrame = true;
 
     public static void main(String[] args) {
 
@@ -76,6 +78,15 @@ public class Index {
 
         initGUI(shapes);
 
+        while (true) {
+            try {
+                Thread.sleep(1000 / maxFps);
+                canRenderNewFrame = true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     static public void initGUI(Shape[] shapes) {
@@ -93,27 +104,27 @@ public class Index {
                 if (e.getKeyCode() == 65) { // a
                     cameraPos[0] -= 6;
                     cameraMovement[0] -= 6;
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 68) { // d
                     cameraPos[0] += 6;
                     cameraMovement[0] += 6;
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 69) { // e
                     cameraPos[1] -= 6;
                     cameraMovement[1] -= 6;
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 81) { // q
                     cameraPos[1] += 6;
                     cameraMovement[1] += 6;
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 87) { // w
                     cameraMovement[2] -= 5;
                     cameraPos[2] -= 5;
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 83) { // s
                     cameraMovement[2] += 5;
                     cameraPos[2] += 5;
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 88) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
@@ -127,7 +138,7 @@ public class Index {
                             }
                         }
                     }
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 89) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
@@ -141,7 +152,7 @@ public class Index {
                             }
                         }
                     }
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 90) {
                     double angle = -0.3;
                     for (int s = 0; s < shapes.length; s++) {
@@ -155,7 +166,7 @@ public class Index {
                             }
                         }
                     }
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 37) {
                     for (int a = 0; a < shapes.length; a++) {
                         Vector3[] vertices = shapes[a].getVertices();
@@ -165,7 +176,7 @@ public class Index {
                             rotateYAxis(vertices[i], angle, cameraPos[0], cameraPos[1], cameraPos[2]);
                         }
                     }
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 } else if (e.getKeyCode() == 39) {
                     for (int a = 0; a < shapes.length; a++) {
                         Vector3[] vertices = shapes[a].getVertices();
@@ -175,13 +186,14 @@ public class Index {
                             rotateYAxis(vertices[i], angle, cameraPos[0], cameraPos[1], cameraPos[2]);
                         }
                     }
-                    generateFrame(shapes);
+                    generateFrame(shapes, false);
                 }
 
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
+                generateFrame(shapes, true);
             }
 
         });
@@ -203,7 +215,7 @@ public class Index {
 
         };
 
-        generateFrame(shapes);
+        generateFrame(shapes, true);
 
         frame.add(panel);
         frame.setVisible(true);
@@ -275,187 +287,28 @@ public class Index {
         }
     }
 
-    static void generateFrame(Shape[] shapes) {
+    static void generateFrame(Shape[] shapes, boolean forceRender) {
+
+        if (!canRenderNewFrame && !forceRender) {
+            return;
+        }
+
+        canRenderNewFrame = false;
 
         lastZRayCoords = new Double[defaultFrameSize[0]][defaultFrameSize[1]];
         framePixels = new Color[defaultFrameSize[0]][defaultFrameSize[1]];
 
-        int amountOfHalfShapes = (int) (shapes.length / 2);
-
-        System.out.println("amount of half shapes: " + amountOfHalfShapes);
-
-        Shape[] shapesTo1 = new Shape[amountOfHalfShapes];
-        Shape[] shapesTo2 = new Shape[shapes.length - amountOfHalfShapes];
-
-        int indexOf1 = 0;
-        int indexOf2 = 0;
-
-        for (int s = 0; s < shapes.length; s++) {
-
-            System.out.println(s);
-
-            if (s % 2 == 0) {
-                shapesTo2[indexOf2] = shapes[s];
-                indexOf2++;
-            } else {
-                shapesTo1[indexOf1] = shapes[s];
-                indexOf1++;
-            }
-
-        }
-
         RenderingThread[] renderingThreads = new RenderingThread[2];
 
-        renderingThreads[0] = new RenderingThread(lastZRayCoords, renderQuality, cameraPos, defaultFrameSize,
-                light, shapesTo1, cameraMovement, framePixels);
+        renderingThreads[0] = new RenderingThread(lastZRayCoords, cameraPos, defaultFrameSize,
+                light, shapes, cameraMovement, framePixels, panel, true);
 
-        renderingThreads[1] = new RenderingThread(lastZRayCoords, renderQuality, cameraPos, defaultFrameSize,
-                light, shapesTo2, cameraMovement, framePixels);
+        renderingThreads[1] = new RenderingThread(lastZRayCoords, cameraPos, defaultFrameSize,
+                light, shapes, cameraMovement, framePixels, panel, false);
 
         renderingThreads[0].start();
         renderingThreads[1].start();
 
-        try {
-            for (RenderingThread renderingThread : renderingThreads) {
-                renderingThread.join();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        panel.repaint();
-
-    }
-
-    static void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c,
-            Color shapeColor) {
-
-        int[] miniMaxX = { (int) a.getX(), (int) a.getX() };
-        int[] miniMaxY = { (int) a.getY(), (int) a.getY() };
-
-        setXYMinMax(miniMaxX, miniMaxY, b, c);
-
-        for (int x = miniMaxX[0]; x < miniMaxX[1]; x += renderQuality) {
-
-            boolean hasLastHit = false;
-
-            for (int y = miniMaxY[0]; y < miniMaxY[1]; y += renderQuality) {
-
-                Ray camRay = new Ray(new Vector3(x, // makes sure that rays will only
-                        y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To
-                // render reflections
-                // in the future I can get a line from the camera to the rendered
-                // dot
-
-                Vector3 triEdge1 = vectorSubtraction(b, a);
-                Vector3 triEdge2 = vectorSubtraction(c, a);
-                Vector3 triFlatNormal = crossProduct(triEdge1, triEdge2);
-
-                Vector3 triPlaneNormal = triFlatNormal;
-                Vector3 triPlanePointOn = a;
-
-                double nDotD = dotProduct(triPlaneNormal, camRay.getDirection());
-
-                if (Math.abs(nDotD) <= 0.0001) {
-                    return;
-                }
-
-                double nDotPs = dotProduct(triPlaneNormal, vectorSubtraction(triPlanePointOn,
-                        camRay.startingPoint));
-                camRay.setT(nDotPs / nDotD);
-
-                Vector3 planePoint = vectorAddition(camRay.startingPoint,
-                        vectorMultiplication(camRay.getDirection(), camRay.t));
-
-                if (planePoint.getX() >= 0 && planePoint.getX() < defaultFrameSize[0] &&
-                        planePoint.getY() >= 0 && planePoint.getY() < defaultFrameSize[1]) {
-                    if (lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] != null
-                            && lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] >= planePoint.getZ()) {
-                        continue;
-                    }
-                } else {
-                    continue;
-                }
-
-                Vector3 bToCEdge = vectorSubtraction(c, b);
-                Vector3 cToAEdge = vectorSubtraction(a, c);
-
-                Vector3 aToPoint = vectorSubtraction(planePoint, a);
-                Vector3 bToPoint = vectorSubtraction(planePoint, b);
-                Vector3 cToPoint = vectorSubtraction(planePoint, c);
-
-                Vector3 aTestVec = crossProduct(triEdge1, aToPoint);
-                Vector3 bTestVec = crossProduct(bToCEdge, bToPoint);
-                Vector3 cTestVec = crossProduct(cToAEdge, cToPoint);
-
-                boolean aTestVecMatchesNormal = dotProduct(aTestVec, triFlatNormal) > 0;
-                boolean bTestVecMatchesNormal = dotProduct(bTestVec, triFlatNormal) > 0;
-                boolean cTestVecMatchesNormal = dotProduct(cTestVec, triFlatNormal) > 0;
-
-                if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
-
-                    hasLastHit = true;
-
-                    lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] = planePoint.getZ();
-
-                    double distanceToLight = getDistance(planePoint, light);
-
-                    int red = shapeColor.getRed() * 400 / ((int) distanceToLight + 1);
-                    int green = shapeColor.getGreen() * 400 / ((int) distanceToLight + 1);
-                    int blue = shapeColor.getBlue() * 400 / ((int) distanceToLight + 1);
-
-                    if (red > 255) {
-                        red = 255;
-                    }
-                    if (green > 255) {
-                        green = 255;
-                    }
-                    if (blue > 255) {
-                        blue = 255;
-                    }
-
-                    framePixels[x][y] = new Color(red, green, blue);
-
-                } else if (hasLastHit) {
-                    break;
-                }
-            }
-
-        }
-    }
-
-    static void setXYMinMax(int[] miniMaxX, int[] miniMaxY, Vector3 b, Vector3 c) {
-        if ((int) b.getX() > miniMaxX[1]) {
-            miniMaxX[1] = (int) b.getX();
-        }
-
-        if ((int) c.getX() > miniMaxX[1]) {
-            miniMaxX[1] = (int) c.getX();
-        }
-
-        if ((int) b.getY() > miniMaxY[1]) {
-            miniMaxY[1] = (int) b.getY();
-        }
-
-        if ((int) c.getY() > miniMaxY[1]) {
-            miniMaxY[1] = (int) c.getY();
-        }
-
-        if ((int) b.getX() < miniMaxX[0]) {
-            miniMaxX[0] = (int) b.getX();
-        }
-
-        if ((int) c.getX() < miniMaxX[0]) {
-            miniMaxX[0] = (int) c.getX();
-        }
-
-        if ((int) b.getY() < miniMaxY[0]) {
-            miniMaxY[0] = (int) b.getY();
-        }
-
-        if ((int) c.getY() < miniMaxY[0]) {
-            miniMaxY[0] = (int) c.getY();
-        }
     }
 
     static void rotateYAxis(Vector3 vertex, double angle, int... rotateAround) {

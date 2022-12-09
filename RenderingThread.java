@@ -4,7 +4,6 @@ import javax.swing.JPanel;
 public class RenderingThread extends Thread {
 
     Double[][] lastZRayCoords;
-    int renderQuality;
     int[] cameraPos;
     int[] defaultFrameSize;
     Vector3 light;
@@ -12,22 +11,24 @@ public class RenderingThread extends Thread {
     int[] cameraMovement;
     Color[][] framePixels;
     Shape shape;
+    JPanel panel;
+    boolean isEven;
 
     Vector3 zAxis = new Vector3(0, 0, 1);
 
-    RenderingThread(Double[][] lastZRayCoords, int renderQuality, int[] cameraPos,
+    RenderingThread(Double[][] lastZRayCoords, int[] cameraPos,
             int[] defaultFrameSize, Vector3 light,
-            Shape[] shapes, int[] cameraMovement, Color[][] framePixels) {
+            Shape[] shapes, int[] cameraMovement, Color[][] framePixels, JPanel panel, boolean isEven) {
 
         this.lastZRayCoords = lastZRayCoords;
-        this.renderQuality = renderQuality;
         this.cameraPos = cameraPos;
         this.defaultFrameSize = defaultFrameSize;
         this.light = light;
         this.shapes = shapes;
         this.cameraMovement = cameraMovement;
         this.framePixels = framePixels;
-
+        this.panel = panel;
+        this.isEven = isEven;
     }
 
     @Override
@@ -88,6 +89,8 @@ public class RenderingThread extends Thread {
 
             }
 
+            panel.repaint();
+
         }
     }
 
@@ -133,11 +136,19 @@ public class RenderingThread extends Thread {
 
         setXYMinMax(miniMaxX, miniMaxY, b, c);
 
-        for (int x = miniMaxX[0]; x < miniMaxX[1]; x += renderQuality) {
+        for (int x = miniMaxX[0]; x < miniMaxX[1]; x++) {
+
+            if (x % 2 == 0 && !isEven) {
+                continue;
+            }
 
             boolean hasLastHit = false;
 
-            for (int y = miniMaxY[0]; y < miniMaxY[1]; y += renderQuality) {
+            for (int y = miniMaxY[0]; y < miniMaxY[1]; y++) {
+
+                if (y % 2 == 0 && !isEven) {
+                    continue;
+                }
 
                 Ray camRay = new Ray(new Vector3(x, // makes sure that rays will only
                         y, cameraPos[2]), zAxis, -1); // be calculated if close to the triangle. To
