@@ -1,9 +1,15 @@
 import java.awt.Color;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class Shape {
 
-    Vector3[] vertices;
-    double[] rotation;
+    private BufferedImage texture;
+
+    private Vector3[] vertices;
+    private double[] rotation;
 
     private Integer indexToSmallestX;
     private Integer indexToSmallestY;
@@ -13,13 +19,38 @@ public class Shape {
     private Integer indexToBiggestY;
     private Integer indexToBiggestZ;
 
+    private String pathToTexture = null;
+
     private boolean isStatic;
 
-    Color color;
+    private Face[] faces;
+
+    private Color color;
 
     Shape(Vector3[] vertices) {
         this.vertices = vertices;
         rotation = new double[3];
+    }
+
+    Shape(Vector3 blf, Vector3 brf, Vector3 trf, Vector3 tlf, Vector3 blb, Vector3 brb, Vector3 trb, Vector3 tlb) {
+        rotation = new double[3];
+        vertices = new Vector3[8];
+        vertices[0] = blf;
+        vertices[1] = brf;
+        vertices[2] = trf;
+        vertices[3] = tlf;
+        vertices[4] = blb;
+        vertices[5] = brb;
+        vertices[6] = trb;
+        vertices[7] = tlb;
+        faces = new Face[6]; // front, side-left, side-right, top, bottom, back
+        faces[0] = new Face(tlf, trf, blf, brf);
+        faces[1] = new Face(tlb, tlf, blb, blf);
+        faces[2] = new Face(trf, trb, brf, brb);
+        faces[3] = new Face(tlf, trf, tlb, trb);
+        faces[4] = new Face(blf, brf, blb, brb);
+        faces[5] = new Face(tlb, trb, blb, brb);
+
     }
 
     Shape() {
@@ -39,6 +70,10 @@ public class Shape {
         return color;
     }
 
+    public Face[] getFaces() {
+        return faces;
+    }
+
     public void setColor(Color color) {
         this.color = color;
     }
@@ -49,6 +84,25 @@ public class Shape {
 
     public boolean getStatic() {
         return isStatic;
+    }
+
+    public void setPathToTexture(String pathToTexture) {
+        this.pathToTexture = pathToTexture;
+
+        try {
+            this.texture = ImageIO.read(new File(pathToTexture));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public BufferedImage getTexture() {
+        return this.texture;
+    }
+
+    public String getPathToTexture() {
+        return this.pathToTexture;
     }
 
     public Vector3 getSmallestYPoint() {

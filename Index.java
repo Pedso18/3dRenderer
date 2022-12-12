@@ -27,54 +27,85 @@ public class Index {
     static int maxFps = 15;
     static boolean canRenderNewFrame = true;
 
+    static boolean hasHeld = false;
+    static boolean isClicking = false;
+
     public static void main(String[] args) {
 
         Shape[] shapes = new Shape[3];
 
-        Shape cube = new Shape();
-        Shape cube2 = new Shape();
-        Shape ground = new Shape();
+        Shape cube = new Shape(
+                new Vector3(-50, 50, 0),
+                new Vector3(50, 50, 0),
+                new Vector3(50, -50, 0),
+                new Vector3(-50, -50, 0),
+                new Vector3(-50, 50, -100),
+                new Vector3(50, 50, -100),
+                new Vector3(50, -50, -100),
+                new Vector3(-50, -50, -100));
 
-        cube.addVector3(new Vector3(-50, 50, 0));
-        cube.addVector3(new Vector3(50, 50, 0));
-        cube.addVector3(new Vector3(50, -50, 0));
-        cube.addVector3(new Vector3(-50, -50, 0));
-
-        cube.addVector3(new Vector3(-50, 50, -100));
-        cube.addVector3(new Vector3(50, 50, -100));
-        cube.addVector3(new Vector3(50, -50, -100));
-        cube.addVector3(new Vector3(-50, -50, -100));
+        cube.setPathToTexture("./dirt.png");
 
         shapes[0] = cube;
         shapes[0].setColor(new Color(20, 20, 255));
 
-        cube2.addVector3(new Vector3(-50, 50, -200));
-        cube2.addVector3(new Vector3(50, 50, -200));
-        cube2.addVector3(new Vector3(50, -50, -200));
-        cube2.addVector3(new Vector3(-50, -50, -200));
-
-        cube2.addVector3(new Vector3(-50, 50, -300));
-        cube2.addVector3(new Vector3(50, 50, -300));
-        cube2.addVector3(new Vector3(50, -50, -300));
-        cube2.addVector3(new Vector3(-50, -50, -300));
+        Shape cube2 = new Shape(
+                new Vector3(-50, 50, -200),
+                new Vector3(50, 50, -200),
+                new Vector3(50, -50, -200),
+                new Vector3(-50, -50, -200),
+                new Vector3(-50, 50, -300),
+                new Vector3(50, 50, -300),
+                new Vector3(50, -50, -300),
+                new Vector3(-50, -50, -300));
 
         shapes[1] = cube2;
         shapes[1].setColor(new Color(255, 20, 20));
 
-        ground.addVector3(new Vector3(-500, 300, 500));
-        ground.addVector3(new Vector3(500, 300, 500));
-        ground.addVector3(new Vector3(500, 300, 500));
-        ground.addVector3(new Vector3(-500, 300, 500));
-
-        ground.addVector3(new Vector3(-500, 300, -5000));
-        ground.addVector3(new Vector3(500, 300, -5000));
-        ground.addVector3(new Vector3(500, 300, -5000));
-        ground.addVector3(new Vector3(-500, 300, -5000));
+        Shape ground = new Shape(
+                new Vector3(-500, 300, 500),
+                new Vector3(500, 300, 500),
+                new Vector3(500, 300, 500),
+                new Vector3(-500, 300, 500),
+                new Vector3(-500, 300, -5000),
+                new Vector3(500, 300, -5000),
+                new Vector3(500, 300, -5000),
+                new Vector3(-500, 300, -5000));
 
         ground.setStatic(true);
 
         shapes[2] = ground;
-        shapes[2].setColor(new Color(20, 255, 20));
+        shapes[2].setColor(new Color(255, 255, 255));
+
+        // leftWall.addVector3(new Vector3(-500, 300, 500));
+        // leftWall.addVector3(new Vector3(-500, -300, 500));
+        // leftWall.addVector3(new Vector3(-500, -300, 500));
+        // leftWall.addVector3(new Vector3(-500, 300, 500));
+
+        // leftWall.addVector3(new Vector3(-500, 300, -5000));
+        // leftWall.addVector3(new Vector3(-500, -300, -5000));
+        // leftWall.addVector3(new Vector3(-500, -300, -5000));
+        // leftWall.addVector3(new Vector3(-500, 300, -5000));
+
+        // leftWall.setStatic(true);
+        // leftWall.setColor(new Color(255, 255, 255));
+
+        // shapes[3] = leftWall;
+
+        // rightWall.addVector3(new Vector3(500, 300, 500));
+        // rightWall.addVector3(new Vector3(500, -300, 500));
+        // rightWall.addVector3(new Vector3(500, -300, 500));
+        // rightWall.addVector3(new Vector3(500, 300, 500));
+
+        // rightWall.addVector3(new Vector3(500, 300, -5000));
+        // rightWall.addVector3(new Vector3(500, -300, -5000));
+        // rightWall.addVector3(new Vector3(500, -300, -5000));
+        // rightWall.addVector3(new Vector3(500, 300, -5000));
+
+        // rightWall.setStatic(true);
+        // rightWall.setColor(new Color(255, 255, 255));
+
+        // shapes[4] = rightWall;
 
         initGUI(shapes);
 
@@ -101,6 +132,10 @@ public class Index {
 
             @Override
             public void keyPressed(KeyEvent e) {
+                if (isClicking) {
+                    hasHeld = true;
+                }
+                isClicking = true;
                 if (e.getKeyCode() == 65) { // a
                     cameraPos[0] -= 6;
                     cameraMovement[0] -= 6;
@@ -193,7 +228,11 @@ public class Index {
 
             @Override
             public void keyReleased(KeyEvent e) {
-                generateFrame(shapes, true);
+                isClicking = false;
+                if (hasHeld) {
+                    hasHeld = false;
+                    generateFrame(shapes, true);
+                }
             }
 
         });

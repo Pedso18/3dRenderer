@@ -1,5 +1,6 @@
 import java.awt.Color;
 import javax.swing.JPanel;
+import java.awt.image.BufferedImage;
 
 public class RenderingThread extends Thread {
 
@@ -13,6 +14,7 @@ public class RenderingThread extends Thread {
     Shape shape;
     JPanel panel;
     boolean isEven;
+    Face currFace;
 
     Vector3 zAxis = new Vector3(0, 0, 1);
 
@@ -37,60 +39,12 @@ public class RenderingThread extends Thread {
         for (Shape shape : shapes) {
 
             this.shape = shape;
-            Vector3[] vertices = shape.getVertices();
 
-            for (int i = 0; i < 4; i++) {
-
-                Vector3 v1, v2, v3, v4;
-                v1 = getPerspectiveOffset(vertices[i], shape.getStatic());
-                v2 = getPerspectiveOffset(vertices[i + 4], shape.getStatic());
-                v3 = getPerspectiveOffset(vertices[(i + 1) % 4 + 4], shape.getStatic());
-                v4 = getPerspectiveOffset(vertices[(i + 1) % 4], shape.getStatic());
-
-                if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                        && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                        && v1.getY() > -200
-                        && v2.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                        && v2.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                    rayTriangleIntersection(v1, v2, v3, shape.color);
-                }
-                if (v1.getX() > -200 && v4.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                        && v4.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                        && v1.getY() > -200
-                        && v4.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                        && v4.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                    rayTriangleIntersection(v3, v4, v1, shape.color);
-                }
-
-            }
-
-            for (int i = 0; i < 2; i++) {
-
-                Vector3 v1, v2, v3, v4;
-                v1 = getPerspectiveOffset(vertices[0 + 4 * i], shape.getStatic());
-                v2 = getPerspectiveOffset(vertices[1 + 4 * i], shape.getStatic());
-                v3 = getPerspectiveOffset(vertices[2 + 4 * i], shape.getStatic());
-                v4 = getPerspectiveOffset(vertices[3 + 4 * i], shape.getStatic());
-
-                if (v1.getX() > -200 && v2.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                        && v2.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                        && v1.getY() > -200
-                        && v2.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                        && v2.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                    rayTriangleIntersection(v1, v2, v3, shape.color);
-                }
-                if (v1.getX() > -200 && v4.getX() > -200 && v3.getX() > -200 && v1.getX() < defaultFrameSize[0] + 200
-                        && v4.getX() < defaultFrameSize[0] + 200 && v3.getX() < defaultFrameSize[0] + 200
-                        && v1.getY() > -200
-                        && v4.getY() > -200 && v3.getY() > -200 && v1.getY() < defaultFrameSize[1] + 200
-                        && v4.getY() < defaultFrameSize[1] + 200 && v3.getY() < defaultFrameSize[1] + 200) {
-                    rayTriangleIntersection(v3, v4, v1, shape.color);
-                }
-
+            for (Face face : shape.getFaces()) {
+                rayFaceIntersection(face);
             }
 
             panel.repaint();
-
         }
     }
 
@@ -128,8 +82,7 @@ public class RenderingThread extends Thread {
         }
     }
 
-    void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c,
-            Color shapeColor) {
+    void rayTriangleIntersection(Vector3 a, Vector3 b, Vector3 c) {
 
         int[] miniMaxX = { (int) a.getX(), (int) a.getX() };
         int[] miniMaxY = { (int) a.getY(), (int) a.getY() };
@@ -204,26 +157,92 @@ public class RenderingThread extends Thread {
                 if (aTestVecMatchesNormal && bTestVecMatchesNormal && cTestVecMatchesNormal) {
 
                     hasLastHit = true;
-
                     lastZRayCoords[(int) planePoint.getX()][(int) planePoint.getY()] = planePoint.getZ();
-
                     double distanceToLight = getDistance(planePoint, light);
 
-                    int red = shape.getColor().getRed() * 400 / ((int) distanceToLight + 1);
-                    int green = shape.getColor().getGreen() * 400 / ((int) distanceToLight + 1);
-                    int blue = shape.getColor().getBlue() * 400 / ((int) distanceToLight + 1);
+                    if (shape.getPathToTexture() != null) {
 
-                    if (red > 255) {
-                        red = 255;
-                    }
-                    if (green > 255) {
-                        green = 255;
-                    }
-                    if (blue > 255) {
-                        blue = 255;
-                    }
+                        int xInImg = 1;
+                        int yInImg = 1;
 
-                    framePixels[x][y] = new Color(red, green, blue);
+                        try {
+
+                            BufferedImage bf = shape.getTexture();
+
+                            Vector3[] faceVertices = currFace.getVertices();
+
+                            Vector3 faceTopLeft = getPerspectiveOffset(faceVertices[0], false);
+                            Vector3 faceTopRight = getPerspectiveOffset(faceVertices[1], false);
+                            Vector3 faceBottomLeft = getPerspectiveOffset(faceVertices[2], false);
+
+                            double horizontalPixelSize = get2dDistance(faceTopLeft, faceTopRight)
+                                    / bf.getWidth();
+
+                            double verticalPixelSize = get2dDistance(faceTopLeft, faceBottomLeft)
+                                    / bf.getHeight();
+
+                            // System.out.println(verticalPixelSize);
+
+                            int xInShape = (int) getDistanceFromLine(getPerspectiveOffset(faceVertices[0], false),
+                                    getPerspectiveOffset(faceVertices[2], false), planePoint);
+                            int yInShape = (int) getDistanceFromLine(getPerspectiveOffset(faceVertices[0], false),
+                                    getPerspectiveOffset(faceVertices[1], false), planePoint);
+
+                            if (horizontalPixelSize != 0) {
+                                xInImg = (int) ((xInShape + horizontalPixelSize) / horizontalPixelSize
+                                        - (((xInShape + horizontalPixelSize) / horizontalPixelSize) % 1)) - 1;
+                            }
+                            xInImg = (int) capValue(0, bf.getWidth() - 1, xInImg);
+                            if (verticalPixelSize != 0) {
+                                yInImg = (int) ((yInShape + verticalPixelSize) / verticalPixelSize
+                                        - (((yInShape + verticalPixelSize) / verticalPixelSize) % 1)) - 1;
+                            }
+                            yInImg = (int) capValue(0, bf.getHeight() - 1, yInImg);
+
+                            // System.out.println(xInImg);
+
+                            int red = new Color(bf.getRGB(xInImg, yInImg)).getRed() * 400 / ((int) distanceToLight + 1);
+                            int green = new Color(bf.getRGB(xInImg, yInImg)).getGreen() * 400
+                                    / ((int) distanceToLight + 1);
+                            int blue = new Color(bf.getRGB(xInImg, yInImg)).getBlue() * 400
+                                    / ((int) distanceToLight + 1);
+
+                            if (red > 255) {
+                                red = 255;
+                            }
+                            if (green > 255) {
+                                green = 255;
+                            }
+                            if (blue > 255) {
+                                blue = 255;
+                            }
+
+                            framePixels[x][y] = new Color(red, green, blue);
+
+                        } catch (IndexOutOfBoundsException e) {
+                            // e.printStackTrace();
+                            // System.out.println("x in image: " + xInImg);
+                            // System.out.println("y in image: " + yInImg);
+                        }
+
+                    } else {
+
+                        int red = shape.getColor().getRed() * 400 / ((int) distanceToLight + 1);
+                        int green = shape.getColor().getGreen() * 400 / ((int) distanceToLight + 1);
+                        int blue = shape.getColor().getBlue() * 400 / ((int) distanceToLight + 1);
+
+                        if (red > 255) {
+                            red = 255;
+                        }
+                        if (green > 255) {
+                            green = 255;
+                        }
+                        if (blue > 255) {
+                            blue = 255;
+                        }
+
+                        framePixels[x][y] = new Color(red, green, blue);
+                    }
 
                 } else if (hasLastHit) {
                     break;
@@ -231,6 +250,28 @@ public class RenderingThread extends Thread {
             }
 
         }
+    }
+
+    void rayFaceIntersection(Face face) {
+        currFace = face;
+        Vector3[] vertices = face.getVertices();
+
+        rayTriangleIntersection(getPerspectiveOffset(vertices[0], false), getPerspectiveOffset(vertices[1], false),
+                getPerspectiveOffset(vertices[2], false));
+
+        rayTriangleIntersection(getPerspectiveOffset(vertices[2], false), getPerspectiveOffset(vertices[3], false),
+                getPerspectiveOffset(vertices[1], false));
+    }
+
+    double getDistanceFromLine(Vector3 lineA, Vector3 lineB, Vector3 point) {
+
+        double numerator = Math.abs((lineB.getX() - lineA.getX()) * (lineA.getY() - point.getY())
+                - (lineA.getX() - point.getX()) * (lineB.getY() - lineA.getY()));
+        double denominator = Math
+                .sqrt(Math.pow(lineB.getX() - lineA.getX(), 2) + Math.pow(lineB.getY() - lineA.getY(), 2));
+
+        return numerator / denominator;
+
     }
 
     Vector3 getPerspectiveOffset(Vector3 vertex, boolean isStatic) {
@@ -315,5 +356,20 @@ public class RenderingThread extends Thread {
     double getDistance(Vector3 a, Vector3 b) {
         return Math.sqrt(
                 Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2) + Math.pow(a.getZ() - b.getZ(), 2));
+    }
+
+    double get2dDistance(Vector3 a, Vector3 b) {
+        return Math.sqrt(
+                Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2));
+    }
+
+    double capValue(double min, double max, double curr) {
+        if (curr < min) {
+            return min;
+        }
+        if (curr > max) {
+            return max;
+        }
+        return curr;
     }
 }
