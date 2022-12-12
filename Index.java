@@ -168,8 +168,8 @@ public class Index {
                             Vector3[] vertices = shapes[s].getVertices();
                             shapes[s].addXAxisRotation(angle);
                             for (int i = 0; i < vertices.length; i++) {
-                                rotateXAxis(vertices[i], angle, (int) middlePoint.getX(), (int) middlePoint.getY(),
-                                        (int) middlePoint.getZ());
+                                rotateXAxis(vertices[i], angle, middlePoint.getX(), middlePoint.getY(),
+                                        middlePoint.getZ());
                             }
                         }
                     }
@@ -261,10 +261,10 @@ public class Index {
 
     }
 
-    static void rotateZAxis(Vector3 vertex, double angle, int... rotateAround) {
+    static void rotateZAxis(Vector3 vertex, double angle, double... rotateAround) {
 
-        int px = rotateAround[0];
-        int py = rotateAround[1];
+        double px = rotateAround[0];
+        double py = rotateAround[1];
 
         double newX = Math.cos(angle) * (vertex.getX() - px) + -Math.sin(angle) * (vertex.getY() - py) + 0;
         double newY = Math.sin(angle) * (vertex.getX() - px) + Math.cos(angle) * (vertex.getY() - py) + 0;
@@ -276,10 +276,10 @@ public class Index {
 
     }
 
-    static void rotateXAxis(Vector3 vertex, double angle, int... rotateAround) {
+    static void rotateXAxis(Vector3 vertex, double angle, double... rotateAround) {
 
-        int py = rotateAround[1];
-        int pz = rotateAround[2];
+        double py = rotateAround[1];
+        double pz = rotateAround[2];
 
         double newY = 0 + Math.cos(angle) * (vertex.getY() - py) + -Math.sin(angle) * (vertex.getZ() - pz);
         double newZ = 0 + Math.sin(angle) * (vertex.getY() - py) + Math.cos(angle) * (vertex.getZ() - pz);
@@ -315,10 +315,10 @@ public class Index {
 
     }
 
-    static void rotateYAxis(Vector3 vertex, double angle, int... rotateAround) {
+    static void rotateYAxis(Vector3 vertex, double angle, double... rotateAround) {
 
-        int px = rotateAround[0];
-        int pz = rotateAround[2];
+        double px = rotateAround[0];
+        double pz = rotateAround[2];
 
         double newX = Math.cos(angle) * (vertex.getX() - px) + 0 + Math.sin(angle) * (vertex.getZ() - pz);
         double newZ = -Math.sin(angle) * (vertex.getX() - px) + 0 + Math.cos(angle) * (vertex.getZ() - pz);
@@ -348,9 +348,10 @@ public class Index {
     }
 
     static Vector3 getShapeMiddlePoint(Shape s) {
-        int mx = (int) ((s.getBiggestXPoint().getX() + s.getSmallestXPoint().getX()) / 2);
-        int my = (int) ((s.getBiggestYPoint().getY() + s.getSmallestYPoint().getY()) / 2);
-        int mz = (int) ((s.getBiggestZPoint().getZ() + s.getSmallestZPoint().getZ()) / 2);
+
+        double mx = (s.getBiggestXPoint().getX() + s.getSmallestXPoint().getX()) / 2;
+        double my = (s.getBiggestYPoint().getY() + s.getSmallestYPoint().getY()) / 2;
+        double mz = (s.getBiggestZPoint().getZ() + s.getSmallestZPoint().getZ()) / 2;
 
         return new Vector3(mx, my, mz);
     }
